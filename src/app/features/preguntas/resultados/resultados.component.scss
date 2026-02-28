@@ -1,0 +1,11 @@
+.resultados { padding: 1.5rem; max-width: 500px; }
+.resultados-loading { color: var(--text-secondary); }
+.resultados-title { font-size: 1rem; color: var(--neon-blue); margin: 0 0 0.5rem; }
+.resultados-total { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; }
+.resultados-bars { display: flex; flex-direction: column; gap: 0.75rem; }
+.resultados-row { display: grid; grid-template-columns: 1fr 2fr 100px; gap: 0.5rem; align-items: center; }
+.resultados-label { font-size: 0.9rem; color: var(--text-primary); }
+.resultados-bar-wrap { height: 20px; background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+.resultados-bar { height: 100%; background: var(--neon-green); border-radius: 4px; transition: width 0.3s; }
+.resultados-value { font-family: var(--font-mono); font-size: 0.85rem; color: var(--neon-blue); }
+.resultados-empty { color: var(--text-secondary); font-style: italic; }

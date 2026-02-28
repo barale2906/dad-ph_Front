@@ -1,0 +1,82 @@
+<div class="orden-dia">
+  <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a reunión</a>
+
+  @if (reunion(); as r) {
+    <h1 class="page-title">Orden del día - {{ r.tipo }} {{ r.ente }}</h1>
+  }
+
+  <div class="avance-panel panel-hud">
+    <span class="avance-label">Avance:</span>
+    <span class="avance-value">{{ avance().ejecutados }} de {{ avance().total }} ítems</span>
+    <span class="avance-pct">({{ avance().porcentaje | number:'1.0-0' }}%)</span>
+  </div>
+
+  @if (loading) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="actions">
+      <button type="button" class="btn btn-primary" (click)="toggleForm()">
+        {{ showForm ? 'Cancelar' : 'Nuevo ítem' }}
+      </button>
+    </div>
+
+    @if (showForm) {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+        <div class="form-group">
+          <label>Título</label>
+          <input formControlName="titulo" class="input" />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea formControlName="descripcion" class="input" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input formControlName="orden" type="number" min="0" class="input" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" (click)="cancelEdit()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+            {{ saving ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    }
+
+    <div class="items-list panel-hud" cdkDropList (cdkDropListDropped)="drop($event)">
+      @for (item of items(); track item.id; let i = $index) {
+        <div
+          class="orden-item"
+          [class.ejecutado]="item.ejecutado"
+          cdkDrag
+        >
+          <span class="drag-handle" cdkDragHandle>⋮⋮</span>
+          <label class="item-checkbox">
+            <input
+              type="checkbox"
+              [checked]="item.ejecutado"
+              (change)="toggleEjecutado(item)"
+            />
+            <span class="item-titulo">{{ item.titulo }}</span>
+          </label>
+          @if (item.descripcion) {
+            <p class="item-desc">{{ item.descripcion }}</p>
+          }
+          <div class="item-actions">
+            <button type="button" class="btn-link" (click)="edit(item)">Editar</button>
+            <button type="button" class="btn-link btn-link-danger" (click)="deleteItem(item)">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">No hay ítems en el orden del día</div>
+      }
+    </div>
+  }
+</div>

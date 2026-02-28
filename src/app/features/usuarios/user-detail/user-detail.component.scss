@@ -1,0 +1,21 @@
+.user-detail { max-width: 800px; }
+.back-link { display: inline-block; color: var(--neon-blue); margin-bottom: 1rem; text-decoration: none; }
+.detail-card, .inmuebles-card { padding: 1.5rem; margin-bottom: 1.5rem; }
+.detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.detail-header h1 { font-size: 1.25rem; color: var(--text-primary); margin: 0; }
+.detail-dl { display: grid; grid-template-columns: 120px 1fr; gap: 0.5rem 1rem; }
+.detail-dl dt { color: var(--text-muted); }
+.detail-dl dd { margin: 0; }
+.inmuebles-card h2 { font-size: 1rem; color: var(--neon-blue); margin: 0 0 1rem; }
+.add-inmueble { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+.input { padding: 0.5rem 0.75rem; background: rgba(0,0,0,0.3); border: var(--border-subtle); border-radius: 4px; color: var(--text-primary); }
+.checkbox { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 0.75rem; text-align: left; border-bottom: var(--border-subtle); }
+.data-table th { font-size: 0.8rem; color: var(--text-muted); }
+.btn-link { background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 0.85rem; }
+.btn { padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-weight: 600; cursor: pointer; }
+.btn-outline { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); }
+.btn-primary { background: var(--neon-green); border: none; color: var(--bg-dark); }
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+.loading { color: var(--text-secondary); padding: 2rem; }

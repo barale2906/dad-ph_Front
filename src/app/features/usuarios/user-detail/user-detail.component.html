@@ -1,0 +1,85 @@
+<div class="user-detail">
+  <a routerLink="/usuarios" class="back-link">← Volver a usuarios</a>
+
+  @if (user(); as u) {
+    <div class="detail-card panel-hud">
+      <div class="detail-header">
+        <h1>{{ u.name }}</h1>
+        <a [routerLink]="['/usuarios', u.id, 'editar']" class="btn btn-outline">Editar</a>
+      </div>
+      <dl class="detail-dl">
+        <dt>Email</dt>
+        <dd>{{ u.email }}</dd>
+        <dt>Rol</dt>
+        <dd>{{ u.role }}</dd>
+        <dt>Documento</dt>
+        <dd>{{ u.document || '—' }}</dd>
+        <dt>Teléfono</dt>
+        <dd>{{ u.phone || '—' }}</dd>
+      </dl>
+    </div>
+
+    <div class="inmuebles-card panel-hud">
+      <h2>Inmuebles asignados</h2>
+      <div class="add-inmueble">
+        <select [(ngModel)]="selectInmuebleId" class="input">
+          <option [value]="0">Seleccionar inmueble</option>
+          @for (i of filtradosDisponibles; track i.id) {
+            <option [value]="i.id">{{ i.nomenclatura }} ({{ i.coeficiente }}%)</option>
+          }
+        </select>
+        <select [(ngModel)]="selectRelacion" class="input">
+          @for (r of relaciones; track r.value) {
+            <option [value]="r.value">{{ r.label }}</option>
+          }
+        </select>
+        <label class="checkbox">
+          <input type="checkbox" [(ngModel)]="selectEsPrincipal" />
+          Principal
+        </label>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          [disabled]="!selectInmuebleId || addingInmueble"
+          (click)="addInmueble()"
+        >
+          Agregar
+        </button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nomenclatura</th>
+            <th>Relación</th>
+            <th>Principal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ui of inmuebles(); track ui.id) {
+            <tr>
+              <td>{{ ui.inmueble_nomenclatura || ui.inmueble_id }}</td>
+              <td>{{ ui.relacion }}</td>
+              <td>{{ ui.es_principal ? 'Sí' : 'No' }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="btn-link btn-link-danger"
+                  (click)="removeInmueble(ui.inmueble_id)"
+                >
+                  Quitar
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">Sin inmuebles asignados</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (loading) {
+    <div class="loading">Cargando...</div>
+  }
+</div>

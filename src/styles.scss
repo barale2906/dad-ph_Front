@@ -1,1 +1,214 @@
-/* You can add global styles to this file, and also import other style files */
+/**
+ * Sistema de diseño UniPH - Estética futurista HUD
+ * Inspirado en docs/miau_yarbis.png: verdes neón, azules eléctricos, fondos oscuros
+ */
+
+/* === Paleta de colores === */
+:root {
+  /* Neones primarios */
+  --neon-green: #00ff88;
+  --neon-green-dim: #00cc6a;
+  --neon-blue: #00d4ff;
+  --neon-blue-dim: #0099cc;
+
+  /* Fondos oscuros */
+  --bg-dark: #0a0e12;
+  --bg-panel: #111820;
+  --bg-elevated: #17202a;
+  --bg-metallic: #1a2332;
+
+  /* Texto */
+  --text-primary: #e8f4fc;
+  --text-secondary: #8ba3b8;
+  --text-muted: #5a6d7d;
+
+  /* Acentos para alertas y acciones críticas */
+  --accent-red: #ff3b3b;
+  --accent-orange: #ff8c42;
+  --accent-amber: #ffb347;
+
+  /* Efectos glow */
+  --glow-green: 0 0 10px rgba(0, 255, 136, 0.5);
+  --glow-blue: 0 0 10px rgba(0, 212, 255, 0.5);
+  --glow-red: 0 0 10px rgba(255, 59, 59, 0.5);
+
+  /* Bordes sutiles */
+  --border-subtle: 1px solid rgba(0, 255, 136, 0.15);
+  --border-blue: 1px solid rgba(0, 212, 255, 0.2);
+
+  /* Tipografía tecnológica */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-sans: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* === Reset y base === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* === Utilidades de glow === */
+.glow-green {
+  box-shadow: var(--glow-green);
+}
+
+.glow-blue {
+  box-shadow: var(--glow-blue);
+}
+
+/* === Componentes base (paneles HUD) === */
+.panel-hud {
+  background: rgba(17, 24, 32, 0.85);
+  border: var(--border-subtle);
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+/* === Componentes UI reutilizables (evitar duplicación en features) === */
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+  }
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 1rem;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--neon-green);
+    box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+  }
+}
+
+textarea.input {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: var(--accent-red);
+  margin-top: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  transition: box-shadow 0.2s;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--neon-green);
+  color: var(--bg-dark);
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--glow-green);
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--neon-blue);
+  color: var(--neon-blue);
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--glow-blue);
+  }
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn-warn {
+  background: var(--accent-orange);
+  color: var(--bg-dark);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-link-danger {
+  color: var(--accent-red);
+}
+
+.alert {
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.alert-error {
+  background: rgba(255, 59, 59, 0.15);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+.alert-success {
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--neon-blue);
+  margin-bottom: 1rem;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

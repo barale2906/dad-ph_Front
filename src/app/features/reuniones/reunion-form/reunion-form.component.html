@@ -1,0 +1,83 @@
+<div class="reunion-form">
+  <h1 class="form-title">{{ isEdit ? 'Editar reunión' : 'Nueva reunión' }}</h1>
+
+  @if (loading) {
+    <div class="form-loading">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select formControlName="tipo" class="input">
+            @for (t of tipos; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ente</label>
+          <select formControlName="ente" class="input">
+            @for (e of entes; track e.value) {
+              <option [value]="e.value">{{ e.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input formControlName="fecha" type="date" class="input" />
+          @if (validationErrors['fecha']) {
+            <span class="form-error">{{ validationErrors['fecha'][0] }}</span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input formControlName="hora" type="time" class="input" />
+          @if (validationErrors['hora']) {
+            <span class="form-error">{{ validationErrors['hora'][0] }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Modalidad</label>
+        <select formControlName="modalidad" class="input">
+          @for (m of modalidades; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Zonas comunes</label>
+        <div class="zonas-checkboxes" role="group" aria-label="Zonas comunes">
+          @for (z of zonasComunes(); track z.id) {
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [checked]="form.get('zona_comun_ids')?.value?.includes(z.id)"
+                (change)="toggleZona(z.id)"
+              />
+              {{ z.nombre }}
+            </label>
+          } @empty {
+            <span class="zonas-empty">No hay zonas comunes definidas. <a routerLink="/zonas-comunes">Gestionar zonas</a></span>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/reuniones" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

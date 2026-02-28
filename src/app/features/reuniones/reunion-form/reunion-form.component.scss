@@ -1,0 +1,19 @@
+.reunion-form { max-width: 600px; }
+.form-title { font-family: var(--font-mono); font-size: 1.5rem; color: var(--neon-green); margin: 0 0 1.5rem; }
+.form-loading { color: var(--text-secondary); padding: 2rem; }
+.form-card { padding: 1.5rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+.form-group label { font-size: 0.85rem; color: var(--text-secondary); }
+.input { padding: 0.6rem 0.9rem; background: rgba(0,0,0,0.3); border: var(--border-subtle); border-radius: 4px; color: var(--text-primary); }
+.form-error { font-size: 0.75rem; color: var(--accent-red); }
+.zonas-checkboxes { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
+.zonas-empty { color: var(--text-secondary); font-size: 0.9rem; }
+.zonas-empty a { color: var(--neon-blue); }
+.form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.alert { padding: 0.6rem 0.9rem; border-radius: 4px; margin-bottom: 1rem; }
+.alert-error { background: rgba(255,59,59,0.15); border: 1px solid var(--accent-red); color: var(--accent-red); }
+.btn { padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+.btn-primary { background: var(--neon-green); border: none; color: var(--bg-dark); }
+.btn-outline { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); }

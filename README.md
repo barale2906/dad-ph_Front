@@ -2,6 +2,18 @@
 
 Frontend Angular para el sistema UniPH - gestión de Propiedad Horizontal, reuniones, votaciones y quórum. Consume la API REST UniPH (Laravel + Sanctum).
 
+## Requisitos previos
+
+- Node.js 18+
+- API UniPH backend ejecutándose (por defecto en `http://localhost:8000`)
+
+## Configuración
+
+1. Copiar `.env.example` a `.env` (si aplica)
+2. Configurar `API_URL` en `.env`:
+   - **Desarrollo:** dejar vacío para usar el proxy (las peticiones a `/api` se reenvían al backend)
+   - **Producción:** URL absoluta del backend (ej. `https://api.ejemplo.com`)
+
 ## Desarrollo con Docker (recomendado)
 
 Según la guía de prácticas Docker del proyecto:
@@ -35,7 +47,7 @@ npm install
 ng serve
 ```
 
-Navega a `http://localhost:4200/`. La aplicación se recarga al modificar el código.
+Navega a `http://localhost:4200/`. La aplicación se recarga al modificar el código. El proxy redirige las peticiones `/api` al backend en `http://localhost:8000`.
 
 ## Code scaffolding
 

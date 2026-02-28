@@ -1,0 +1,62 @@
+.en-vivo { min-height: 100vh; }
+.en-vivo__layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+.en-vivo__sidebar { padding: 1rem; display: flex; flex-direction: column; }
+.sidebar-title { font-family: var(--font-mono); font-size: 0.95rem; color: var(--neon-blue); margin: 0 0 1rem; }
+.orden-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+.orden-item { padding: 0.5rem 0; border-bottom: var(--border-subtle); font-size: 0.9rem; color: var(--text-primary); }
+.orden-item.ejecutado { color: var(--text-secondary); text-decoration: line-through; }
+.orden-empty { color: var(--text-secondary); font-style: italic; padding: 0.5rem 0; }
+.back-link { margin-top: 1rem; color: var(--neon-blue); font-size: 0.9rem; text-decoration: none; }
+.en-vivo__main { padding: 1.5rem; overflow-y: auto; }
+.en-vivo__header { margin-bottom: 1.5rem; }
+.en-vivo__title { font-family: var(--font-mono); font-size: 1.4rem; color: var(--neon-green); margin: 0; }
+.quorum-card { padding: 1.5rem; margin-bottom: 1.5rem; max-width: 600px; }
+.quorum-title { font-size: 1rem; color: var(--neon-blue); margin: 0 0 1rem; }
+.quorum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.quorum-stat { display: flex; flex-direction: column; gap: 0.25rem; }
+.quorum-stat__label { font-size: 0.85rem; color: var(--text-secondary); }
+.quorum-stat__value { font-family: var(--font-mono); font-size: 1.1rem; color: var(--neon-green); }
+.quorum-stat__pct { font-size: 0.9rem; color: var(--neon-blue); }
+.quorum-loading { color: var(--text-secondary); }
+.barcode-card { padding: 1.5rem; max-width: 500px; }
+.barcode-title { font-size: 1rem; color: var(--neon-blue); margin: 0 0 0.5rem; }
+.barcode-desc { color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 1rem; }
+.barcode-form { display: flex; gap: 0.5rem; align-items: center; }
+.barcode-form .input { flex: 1; padding: 0.6rem 0.9rem; background: rgba(0,0,0,0.3); border: var(--border-subtle); border-radius: 4px; color: var(--text-primary); }
+.alert-error { background: rgba(255,59,59,0.15); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 0.6rem; border-radius: 4px; margin-top: 0.75rem; }
+.btn { padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 4px; cursor: pointer; border: none; }
+.btn-sm { padding: 0.35rem 0.75rem; }
+.btn-primary { background: var(--neon-green); color: var(--bg-dark); }
+.btn-outline { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); }
+.loading { padding: 2rem; color: var(--text-secondary); }
+
+@media (max-width: 768px) {
+  .en-vivo__layout { grid-template-columns: 1fr; }
+  .en-vivo__sidebar { order: 2; }
+  .quorum-grid { grid-template-columns: 1fr; }
+  .barcode-form { flex-direction: column; }
+  .pregunta-header { flex-direction: column; align-items: flex-start; }
+  .voto-section .opciones-voto { flex-direction: column; }
+  .timer-form { max-width: 100%; }
+}
+.votacion-card, .timers-card { padding: 1.5rem; margin-bottom: 1.5rem; }
+.section-title { font-size: 1rem; color: var(--neon-blue); margin: 0 0 1rem; }
+.pregunta-block { margin-bottom: 1.5rem; padding: 1rem; border: var(--border-subtle); border-radius: 4px; }
+.pregunta-header { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.pregunta-orden { font-weight: 600; color: var(--neon-green); }
+.pregunta-texto { flex: 1; min-width: 200px; }
+.badge { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.badge-abierta { background: rgba(0,255,100,0.2); color: var(--neon-green); }
+.badge-cerrada { background: rgba(100,100,255,0.2); color: var(--neon-blue); }
+.badge-inactiva { background: rgba(128,128,128,0.2); color: var(--text-secondary); }
+.voto-section { margin-top: 1rem; padding-top: 1rem; border-top: var(--border-subtle); }
+.voto-label { font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.35rem; }
+.input-select { max-width: 300px; padding: 0.5rem; }
+.opciones-voto { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.btn-opcion { min-width: 100px; }
+.empty-msg { color: var(--text-secondary); font-style: italic; margin: 0; }
+.timers-list { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+.timer-form { padding: 1rem; margin-top: 1rem; display: grid; gap: 0.5rem; max-width: 400px; }
+.timer-form label { font-size: 0.85rem; color: var(--text-secondary); }
+.timer-form-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.btn-warn { background: var(--accent-orange); color: var(--bg-dark); }

@@ -1,0 +1,62 @@
+<div class="pregunta-form">
+  <a [routerLink]="['/reuniones', reunionId, 'preguntas']" class="back-link">← Volver a preguntas</a>
+
+  <h1 class="page-title">{{ isEdit ? 'Editar pregunta' : 'Nueva pregunta' }}</h1>
+
+  @if (loading) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      <div class="form-group">
+        <label>Pregunta</label>
+        <textarea formControlName="pregunta" class="input" rows="2" placeholder="Texto de la pregunta"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Estado</label>
+          <select formControlName="estado" class="input">
+            @for (e of estados; track e.value) {
+              <option [value]="e.value">{{ e.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input formControlName="orden" type="number" min="0" class="input" />
+        </div>
+      </div>
+
+      <div class="opciones-section">
+        <div class="opciones-header">
+          <h3>Opciones de respuesta</h3>
+          <button type="button" class="btn btn-outline btn-sm" (click)="addNuevaOpcion()">
+            + Agregar opción
+          </button>
+        </div>
+        <div formArrayName="opciones" class="opciones-list">
+          @for (ctrl of opcionesArray.controls; track $index; let i = $index) {
+            <div class="opcion-row" [formGroupName]="i">
+              <input formControlName="texto" class="input" placeholder="Texto de la opción" />
+              <input formControlName="orden" type="number" min="0" class="input input-orden" />
+              <button type="button" class="btn-link btn-link-danger" (click)="removeOpcion(i)">
+                Quitar
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" (click)="goBack()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -1,0 +1,57 @@
+<div class="reunion-detail">
+  <a routerLink="/reuniones" class="back-link">← Volver a reuniones</a>
+
+  @if (reunion(); as r) {
+    <div class="detail-card panel-hud">
+      <div class="detail-header">
+        <h1>Reunión {{ r.tipo }} - {{ r.ente }}</h1>
+        <div class="detail-actions">
+          <a [routerLink]="['/reuniones', r.id, 'orden-dia']" class="btn btn-outline">Orden del día</a>
+          <a [routerLink]="['/reuniones', r.id, 'preguntas']" class="btn btn-outline">Preguntas</a>
+          @if (r.estado === 'finalizada') {
+            <button type="button" class="btn btn-outline" (click)="descargarActa(r.id)">Descargar acta</button>
+            <a [routerLink]="['/reuniones', r.id, 'estadisticas']" class="btn btn-outline">Estadísticas</a>
+          }
+          <a [routerLink]="['/reuniones', r.id, 'editar']" class="btn btn-outline">Editar</a>
+          @if (r.estado === 'programada') {
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="actionLoading"
+              (click)="iniciar()"
+            >
+              Iniciar reunión
+            </button>
+          }
+          @if (r.estado === 'en_curso') {
+            <a [routerLink]="['/reuniones', r.id, 'en-vivo']" class="btn btn-primary">Vista en vivo</a>
+            <button
+              type="button"
+              class="btn btn-warn"
+              [disabled]="actionLoading"
+              (click)="cerrar()"
+            >
+              Cerrar reunión
+            </button>
+          }
+        </div>
+      </div>
+      <dl class="detail-dl">
+        <dt>Fecha</dt>
+        <dd>{{ formatFecha(r.fecha) }}</dd>
+        <dt>Hora</dt>
+        <dd>{{ r.hora }}</dd>
+        <dt>Modalidad</dt>
+        <dd>{{ r.modalidad }}</dd>
+        <dt>Estado</dt>
+        <dd>
+          <span class="badge badge-{{ r.estado }}">{{ r.estado }}</span>
+        </dd>
+      </dl>
+
+      <app-convocatoria-section [reunionId]="r.id" />
+    </div>
+  } @else if (loading) {
+    <div class="loading">Cargando...</div>
+  }
+</div>

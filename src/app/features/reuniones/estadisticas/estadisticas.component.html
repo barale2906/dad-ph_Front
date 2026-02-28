@@ -1,0 +1,23 @@
+<div class="estadisticas">
+  <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a reunión</a>
+
+  @if (reunion(); as r) {
+    <h1 class="page-title">Estadísticas - {{ r.tipo }} {{ r.ente }}</h1>
+  }
+
+  @if (loading) {
+    <div class="loading">Cargando estadísticas...</div>
+  } @else if (estadisticas(); as est) {
+    <div class="estadisticas-content">
+      @for (p of est.preguntas; track p.pregunta_id) {
+        <div class="resultados-block panel-hud">
+          <app-resultados [data]="p" />
+        </div>
+      } @empty {
+        <p class="empty-msg">No hay preguntas con resultados para esta reunión</p>
+      }
+    </div>
+  } @else {
+    <p class="empty-msg">No se pudieron cargar las estadísticas</p>
+  }
+</div>

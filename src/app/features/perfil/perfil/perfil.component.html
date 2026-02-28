@@ -1,0 +1,41 @@
+<div class="perfil">
+  <h1 class="perfil__title">Perfil</h1>
+
+  <section class="perfil-section panel-hud">
+    <h2>Datos personales</h2>
+    @if (user(); as u) {
+      <dl class="perfil-dl">
+        <dt>Nombre</dt>
+        <dd>{{ u.name }}</dd>
+        <dt>Correo</dt>
+        <dd>{{ u.email }}</dd>
+      </dl>
+    }
+  </section>
+
+  <section class="perfil-section panel-hud">
+    <h2>Cambiar contraseña</h2>
+    <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="perfil-form">
+      @if (message) {
+        <div class="alert" [class.alert-error]="messageType === 'error'" [class.alert-success]="messageType === 'success'">
+          {{ message }}
+        </div>
+      }
+      <div class="form-group">
+        <label>Contraseña actual</label>
+        <input formControlName="current_password" type="password" class="input" />
+      </div>
+      <div class="form-group">
+        <label>Nueva contraseña (mín. 8 caracteres)</label>
+        <input formControlName="password" type="password" class="input" />
+      </div>
+      <div class="form-group">
+        <label>Confirmar nueva contraseña</label>
+        <input formControlName="password_confirmation" type="password" class="input" />
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid">
+        Actualizar contraseña
+      </button>
+    </form>
+  </section>
+</div>

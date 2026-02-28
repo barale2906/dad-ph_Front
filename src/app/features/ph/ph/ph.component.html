@@ -1,0 +1,101 @@
+<div class="ph-page">
+  <h1 class="ph-page__title">Propiedad Horizontal</h1>
+
+  @if (loading) {
+    <div class="ph-loading">Cargando...</div>
+  } @else if (ph(); as data) {
+    <div class="ph-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      @if (!editing) {
+        <div class="ph-view">
+          <div class="ph-view__header">
+            @if (data.logo_url) {
+              <img [src]="data.logo_url" alt="Logo" class="ph-view__logo" />
+            }
+            <div>
+              <h2>{{ data.name }}</h2>
+              <span class="ph-view__nit">NIT: {{ data.nit }}</span>
+            </div>
+            <button type="button" class="btn btn-outline" (click)="toggleEdit()">
+              Editar
+            </button>
+          </div>
+          <dl class="ph-view__dl">
+            <dt>Correo</dt>
+            <dd>{{ data.email }}</dd>
+            <dt>Dirección</dt>
+            <dd>{{ data.address || '—' }}</dd>
+            <dt>Teléfono</dt>
+            <dd>{{ data.phone || '—' }}</dd>
+            <dt>Estado</dt>
+            <dd>{{ data.estado || '—' }}</dd>
+          </dl>
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ph-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>NIT</label>
+              <input formControlName="nit" class="input" />
+              @if (validationErrors['nit']) {
+                <span class="form-error">{{ validationErrors['nit'][0] }}</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Nombre</label>
+              <input formControlName="name" class="input" />
+              @if (validationErrors['name']) {
+                <span class="form-error">{{ validationErrors['name'][0] }}</span>
+              }
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input formControlName="email" type="email" class="input" />
+            @if (validationErrors['email']) {
+              <span class="form-error">{{ validationErrors['email'][0] }}</span>
+            }
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Dirección</label>
+              <input formControlName="address" class="input" />
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input formControlName="phone" class="input" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <input formControlName="estado" class="input" />
+          </div>
+          <div class="form-group">
+            <label>Logo (opcional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onLogoChange($event)"
+              class="input"
+            />
+          </div>
+          <div class="ph-form__actions">
+            <button type="button" class="btn btn-outline" (click)="cancelEdit()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="form.invalid || saving"
+            >
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+</div>

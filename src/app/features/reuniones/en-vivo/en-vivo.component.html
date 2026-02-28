@@ -1,0 +1,164 @@
+<div class="en-vivo">
+  @if (reunion(); as r) {
+    <div class="en-vivo__layout">
+      <aside class="en-vivo__sidebar panel-hud">
+        <h3 class="sidebar-title">Orden del día</h3>
+        <ul class="orden-list">
+          @for (item of ordenDia(); track item.id) {
+            <li class="orden-item" [class.ejecutado]="item.ejecutado">
+              {{ item.orden }}. {{ item.titulo }}
+            </li>
+          } @empty {
+            <li class="orden-empty">Sin ítems</li>
+          }
+        </ul>
+        <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a reunión</a>
+      </aside>
+
+      <main class="en-vivo__main">
+        <header class="en-vivo__header">
+          <h1 class="en-vivo__title">En vivo: {{ r.tipo }} - {{ r.ente }}</h1>
+        </header>
+
+        <section class="quorum-card panel-hud">
+          <h3 class="quorum-title">Quórum</h3>
+          @if (quorum(); as q) {
+            <div class="quorum-grid">
+              <div class="quorum-stat">
+                <span class="quorum-stat__label">Unidades presentes</span>
+                <span class="quorum-stat__value">{{ q.unidades_presentes | number }} / {{ q.total_unidades | number }}</span>
+                @if (q.porcentaje_unidades != null) {
+                  <span class="quorum-stat__pct">{{ q.porcentaje_unidades | number:'1.1-1' }}%</span>
+                }
+              </div>
+              <div class="quorum-stat">
+                <span class="quorum-stat__label">Coeficiente presente</span>
+                <span class="quorum-stat__value">{{ q.coeficiente_presente | number:'1.2-2' }} / {{ q.total_coeficiente | number:'1.2-2' }}</span>
+                @if (q.porcentaje_coeficiente != null) {
+                  <span class="quorum-stat__pct">{{ q.porcentaje_coeficiente | number:'1.1-1' }}%</span>
+                }
+              </div>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" [disabled]="generandoQuorum" (click)="generarQuorum()">
+              {{ generandoQuorum ? 'Generando...' : 'Generar quórum' }}
+            </button>
+          } @else {
+            <div class="quorum-loading">Cargando quórum...</div>
+          }
+        </section>
+
+        <section class="barcode-card panel-hud">
+          <h3 class="barcode-title">Registrar asistencia</h3>
+          <p class="barcode-desc">Escanea o ingresa el código de barras del asistente.</p>
+          <div class="barcode-form">
+            <input
+              type="text"
+              [(ngModel)]="barcodeInput"
+              placeholder="Código de barras"
+              class="input"
+              (keydown.enter)="onRegistrarBarcode()"
+            />
+            <button type="button" class="btn btn-primary" [disabled]="registering || !barcodeInput.trim()" (click)="onRegistrarBarcode()">
+              {{ registering ? 'Registrando...' : 'Registrar' }}
+            </button>
+          </div>
+          @if (barcodeError) {
+            <div class="alert alert-error">{{ barcodeError }}</div>
+          }
+        </section>
+
+        <section class="votacion-card panel-hud">
+          <h3 class="section-title">Preguntas y votación</h3>
+          @for (p of preguntas(); track p.id) {
+            <div class="pregunta-block" [class]="'estado-' + p.estado">
+              <div class="pregunta-header">
+                <span class="pregunta-orden">{{ p.orden }}</span>
+                <span class="pregunta-texto">{{ p.pregunta }}</span>
+                <span class="badge badge-{{ p.estado }}">{{ p.estado }}</span>
+                @if (p.estado === 'inactiva') {
+                  <button type="button" class="btn btn-primary btn-sm" (click)="abrirPregunta(p)">Abrir</button>
+                }
+                @if (p.estado === 'abierta') {
+                  <button type="button" class="btn btn-warn btn-sm" (click)="cerrarPregunta(p)">Cerrar</button>
+                }
+              </div>
+              @if (p.estado === 'abierta' && p.opciones && p.opciones.length) {
+                <div class="voto-section">
+                  <label class="voto-label">Asistente que vota:</label>
+                  <select [(ngModel)]="votoAsistenteId" class="input input-select">
+                    <option [ngValue]="0">Seleccionar</option>
+                    @for (a of asistentes(); track a.id) {
+                      <option [ngValue]="a.id">{{ a.nombre }} ({{ a.documento || a.barcode_numero || '-' }})</option>
+                    }
+                  </select>
+                  <div class="opciones-voto">
+                    @for (op of p.opciones; track op.id) {
+                      <button type="button" class="btn btn-outline btn-opcion" (click)="votar(p.id, op.id)">
+                        {{ op.texto }}
+                      </button>
+                    }
+                  </div>
+                  @if (votoError) {
+                    <div class="alert alert-error">{{ votoError }}</div>
+                  }
+                </div>
+              }
+              @if (p.estado === 'cerrada') {
+                <app-resultados [preguntaId]="p.id" />
+              }
+            </div>
+          } @empty {
+            <p class="empty-msg">No hay preguntas para esta reunión</p>
+          }
+        </section>
+
+        <section class="timers-card panel-hud">
+          <h3 class="section-title">Cronómetros</h3>
+          @if (showTimerForm) {
+            <div class="timer-form panel-hud">
+              <label>Tipo</label>
+              <select [(ngModel)]="timerForm.tipo" class="input">
+                <option value="INTERVENCION">Intervención</option>
+                <option value="VOTACION">Votación</option>
+              </select>
+              <label>Duración (segundos)</label>
+              <input type="number" [(ngModel)]="timerForm.duracion_segundos" min="1" class="input" />
+              <label>Interviniente (opcional)</label>
+              <input type="text" [(ngModel)]="timerForm.interviniente_nombre" class="input" placeholder="Nombre" />
+              @if (timerForm.tipo === 'VOTACION') {
+                <label>Pregunta (opcional)</label>
+                <select [(ngModel)]="timerForm.pregunta_id" class="input">
+                  <option [ngValue]="0">Ninguna</option>
+                  @for (p of preguntasAbiertas(); track p.id) {
+                    <option [ngValue]="p.id">{{ p.orden }}. {{ p.pregunta }}</option>
+                  }
+                </select>
+              }
+              @if (timerError) {
+                <div class="alert alert-error">{{ timerError }}</div>
+              }
+              <div class="timer-form-actions">
+                <button type="button" class="btn btn-outline" (click)="showTimerForm = false">Cancelar</button>
+                <button type="button" class="btn btn-primary" [disabled]="creandoTimer" (click)="crearTimer()">
+                  {{ creandoTimer ? 'Creando...' : 'Crear timer' }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button type="button" class="btn btn-outline btn-sm" (click)="showTimerForm = true">+ Nuevo cronómetro</button>
+          }
+          <div class="timers-list">
+            @for (t of timersActivos(); track t.id) {
+              <app-timer-countdown
+                [timer]="t"
+                (timerUpdated)="onTimerUpdated($event)"
+              />
+            }
+          </div>
+        </section>
+      </main>
+    </div>
+  } @else if (loading) {
+    <div class="loading">Cargando...</div>
+  }
+</div>

@@ -1,0 +1,71 @@
+<div class="asistente-form">
+  <h1 class="form-title">{{ isEdit ? 'Editar asistente' : 'Nuevo asistente' }}</h1>
+
+  @if (loading) {
+    <div class="form-loading">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input formControlName="nombre" class="input" />
+        </div>
+        <div class="form-group">
+          <label>Documento</label>
+          <input formControlName="documento" class="input" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input formControlName="telefono" class="input" />
+        </div>
+        <div class="form-group">
+          <label>Código de acceso</label>
+          <input formControlName="codigo_acceso" class="input" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo asistente</label>
+        <select formControlName="tipo_asistente" class="input">
+          @for (t of tipos; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="inmuebles-section">
+        <div class="inmuebles-header">
+          <h3>Inmuebles</h3>
+          <button type="button" class="btn btn-outline btn-sm" (click)="addInmueble()">+ Agregar</button>
+        </div>
+        <div formArrayName="inmuebles" class="inmuebles-list">
+          @for (ctrl of inmueblesArray.controls; track $index; let i = $index) {
+            <div class="inmueble-row" [formGroupName]="i">
+              <select formControlName="inmueble_id" class="input">
+                <option [value]="0">Seleccionar inmueble</option>
+                @for (inv of inmueblesDisponibles(); track inv.id) {
+                  <option [value]="inv.id">{{ inv.nomenclatura }} ({{ inv.coeficiente }}%)</option>
+                }
+              </select>
+              <input formControlName="coeficiente" type="number" min="0" class="input input-num" placeholder="Coef." />
+              <input formControlName="poder_url" class="input" placeholder="URL poder" />
+              <button type="button" class="btn-link btn-link-danger" (click)="removeInmueble(i)">Quitar</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/asistentes" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

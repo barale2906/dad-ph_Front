@@ -1,0 +1,102 @@
+<div class="install-page">
+  <div class="install-card panel-hud">
+    <div class="install-card__header">
+      <h1 class="install-card__title">Configuración inicial UniPH</h1>
+      <p class="install-card__subtitle">Complete los datos del administrador y de la Propiedad Horizontal</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="install-form">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      <section class="form-section">
+        <h3>Administrador</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre completo</label>
+            <input formControlName="adminName" class="input" placeholder="Nombre" />
+            @if (validationErrors['adminName']) {
+              <span class="form-error">{{ validationErrors['adminName'][0] }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input formControlName="adminEmail" type="email" class="input" placeholder="admin&#64;ejemplo.com" />
+            @if (validationErrors['adminEmail']) {
+              <span class="form-error">{{ validationErrors['adminEmail'][0] }}</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input formControlName="adminPassword" type="password" class="input" placeholder="Mín. 8 caracteres" />
+            @if (validationErrors['adminPassword']) {
+              <span class="form-error">{{ validationErrors['adminPassword'][0] }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Confirmar contraseña</label>
+            <input formControlName="adminPasswordConfirm" type="password" class="input" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Documento (opcional)</label>
+            <input formControlName="adminDocument" class="input" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono (opcional)</label>
+            <input formControlName="adminPhone" class="input" />
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h3>Propiedad Horizontal</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>NIT</label>
+            <input formControlName="phNit" class="input" placeholder="NIT" />
+            @if (validationErrors['phNit']) {
+              <span class="form-error">{{ validationErrors['phNit'][0] }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Nombre</label>
+            <input formControlName="phName" class="input" placeholder="Nombre de la PH" />
+            @if (validationErrors['phName']) {
+              <span class="form-error">{{ validationErrors['phName'][0] }}</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Correo</label>
+            <input formControlName="phEmail" type="email" class="input" />
+            @if (validationErrors['phEmail']) {
+              <span class="form-error">{{ validationErrors['phEmail'][0] }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Teléfono (opcional)</label>
+            <input formControlName="phPhone" class="input" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dirección (opcional)</label>
+          <input formControlName="phAddress" class="input" />
+        </div>
+      </section>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="form.invalid || loading"
+      >
+        {{ loading ? 'Instalando...' : 'Completar instalación' }}
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,114 @@
+<div class="reunion-list">
+  <div class="list-header">
+    <h1 class="list-header__title">Reuniones</h1>
+    <a routerLink="/reuniones/nueva" class="btn btn-primary">Nueva reunión</a>
+  </div>
+
+  <div class="filters panel-hud">
+    <select
+      [ngModel]="filters().estado"
+      (ngModelChange)="filters.update(f => ({ ...f, estado: $event }))"
+      class="input"
+    >
+      <option value="">Todos los estados</option>
+      <option value="programada">Programada</option>
+      <option value="en_curso">En curso</option>
+      <option value="finalizada">Finalizada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+    <select
+      [ngModel]="filters().tipo"
+      (ngModelChange)="filters.update(f => ({ ...f, tipo: $event }))"
+      class="input"
+    >
+      <option value="">Todos los tipos</option>
+      <option value="ordinaria">Ordinaria</option>
+      <option value="extraordinaria">Extraordinaria</option>
+    </select>
+    <button type="button" class="btn btn-outline" (click)="applyFilters()">
+      Filtrar
+    </button>
+  </div>
+
+  <div class="table-wrap panel-hud">
+    @if (loading) {
+      <div class="table-loading">Cargando...</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Tipo</th>
+            <th>Modalidad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of reuniones(); track r.id) {
+            <tr>
+              <td>{{ formatFecha(r.fecha) }}</td>
+              <td>{{ r.hora }}</td>
+              <td>{{ r.tipo }}</td>
+              <td>{{ r.modalidad }}</td>
+              <td>
+                <span class="badge" [class]="'badge-' + r.estado">
+                  {{ r.estado }}
+                </span>
+              </td>
+              <td>
+                <a [routerLink]="['/reuniones', r.id]" class="link">Ver</a>
+                <a [routerLink]="['/reuniones', r.id, 'editar']" class="link">Editar</a>
+                @if (r.estado === 'programada') {
+                  <button
+                    type="button"
+                    class="btn-link btn-link-success"
+                    [disabled]="actionLoadingId() === r.id"
+                    (click)="iniciar(r)"
+                  >
+                    Iniciar
+                  </button>
+                }
+                @if (r.estado === 'en_curso') {
+                  <button
+                    type="button"
+                    class="btn-link btn-link-warn"
+                    [disabled]="actionLoadingId() === r.id"
+                    (click)="cerrar(r)"
+                  >
+                    Cerrar
+                  </button>
+                }
+                @if (deleteConfirmId() === r.id) {
+                  <span class="delete-confirm">
+                    <button type="button" class="btn-link btn-link-danger" (click)="doDelete(r.id)">Confirmar</button>
+                    <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
+                  </span>
+                } @else if (r.estado !== 'en_curso') {
+                  <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(r.id)">Eliminar</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">No hay reuniones</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (meta() && totalPaginas() > 1) {
+        <div class="pagination">
+          <button type="button" class="btn btn-outline btn-sm" [disabled]="filters().pagina <= 1" (click)="goPage(filters().pagina - 1)">
+            Anterior
+          </button>
+          <span class="pagination__info">Página {{ filters().pagina }} de {{ totalPaginas() }}</span>
+          <button type="button" class="btn btn-outline btn-sm" [disabled]="filters().pagina >= totalPaginas()" (click)="goPage(filters().pagina + 1)">
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

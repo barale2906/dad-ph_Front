@@ -1,0 +1,57 @@
+<div class="carga-masiva">
+  <div class="carga-header">
+    <a routerLink="/inmuebles" class="back-link">← Volver a inmuebles</a>
+    <h1 class="carga-title">Carga masiva de inmuebles</h1>
+  </div>
+
+  <div class="carga-card panel-hud">
+    <p class="carga-desc">
+      Suba un archivo CSV con los inmuebles. Descargue la plantilla para ver el formato requerido.
+    </p>
+
+    <div class="carga-actions">
+      <button type="button" class="btn btn-outline" (click)="downloadTemplate()">
+        Descargar plantilla CSV
+      </button>
+      <input
+        #fileInput
+        type="file"
+        accept=".csv"
+        (change)="onFileSelected($event)"
+        class="file-input"
+      />
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="triggerFileInput()"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Procesando...' : 'Seleccionar archivo CSV' }}
+      </button>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">{{ errorMessage }}</div>
+    }
+
+    @if (result(); as r) {
+      <div class="result-panel">
+        <h3>Resultado de la carga</h3>
+        <div class="result-stats">
+          <span class="stat stat-ok">Creados: {{ r.creados }}</span>
+          <span class="stat stat-info">Actualizados: {{ r.actualizados }}</span>
+        </div>
+        @if (r.errores.length > 0) {
+          <div class="result-errors">
+            <h4>Errores por fila</h4>
+            <ul>
+              @for (e of r.errores; track e.fila) {
+                <li>Fila {{ e.fila }}: {{ e.mensaje }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

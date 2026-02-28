@@ -1,0 +1,44 @@
+<div class="convocatoria-section panel-hud">
+  <h3 class="section-title">Convocatoria</h3>
+  @if (loading) {
+    <div class="loading">Cargando...</div>
+  } @else if (convocatoria(); as c) {
+    <span class="badge badge-{{ c.estado }}">{{ c.estado }}</span>
+    @if (showEditor || c.estado === 'borrador') {
+      <div class="editor-area">
+        <label for="contenido">Contenido</label>
+        <textarea
+          id="contenido"
+          [(ngModel)]="editContenido"
+          [ngModelOptions]="{standalone: true}"
+          class="input"
+          rows="6"
+          placeholder="Texto de la convocatoria"
+        ></textarea>
+        <div class="actions">
+          @if (c.estado === 'borrador' && showEditor) {
+            <button type="button" class="btn btn-outline" (click)="showEditor = false">Cerrar</button>
+          }
+          @if (c.estado === 'borrador') {
+            <button type="button" class="btn btn-primary" [disabled]="saving" (click)="guardar()">{{ saving ? 'Guardando...' : 'Guardar' }}</button>
+            <button type="button" class="btn btn-outline" [disabled]="saving" (click)="enviar()">Enviar</button>
+          }
+          @if (c.estado === 'enviada') {
+            <button type="button" class="btn btn-primary" [disabled]="saving" (click)="publicar()">Publicar</button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="contenido-preview">{{ c.contenido || 'Sin contenido' }}</div>
+      @if (c.estado === 'enviada') {
+        <button type="button" class="btn btn-primary btn-sm" [disabled]="saving" (click)="publicar()">Publicar</button>
+      }
+    }
+    @if (errorMessage) {
+      <div class="alert alert-error">{{ errorMessage }}</div>
+    }
+  } @else {
+    <p class="no-convocatoria">No hay convocatoria. Crearla para enviar y publicar.</p>
+    <button type="button" class="btn btn-primary" [disabled]="saving" (click)="crear()">{{ saving ? 'Creando...' : 'Crear convocatoria' }}</button>
+  }
+</div>

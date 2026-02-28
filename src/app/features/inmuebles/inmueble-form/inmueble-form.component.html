@@ -1,0 +1,82 @@
+<div class="inmueble-form">
+  <h1 class="form-title">{{ isEdit ? 'Editar inmueble' : 'Nuevo inmueble' }}</h1>
+
+  @if (loading) {
+    <div class="form-loading">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nomenclatura</label>
+          <input formControlName="nomenclatura" class="input" placeholder="Ej. Apto 101" />
+          @if (validationErrors['nomenclatura']) {
+            <span class="form-error">{{ validationErrors['nomenclatura'][0] }}</span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Coeficiente (0-100)</label>
+          <input
+            formControlName="coeficiente"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            class="input"
+          />
+          @if (validationErrors['coeficiente']) {
+            <span class="form-error">{{ validationErrors['coeficiente'][0] }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo (opcional)</label>
+        <input formControlName="tipo" class="input" placeholder="Ej. Apartamento, Local" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Documento propietario</label>
+          <input formControlName="propietario_documento" class="input" />
+        </div>
+        <div class="form-group">
+          <label>Nombre propietario</label>
+          <input formControlName="propietario_nombre" class="input" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input formControlName="telefono" class="input" />
+        </div>
+        <div class="form-group">
+          <label>Correo</label>
+          <input formControlName="email" type="email" class="input" />
+        </div>
+      </div>
+
+      <div class="form-group form-group--checkbox">
+        <label>
+          <input type="checkbox" formControlName="activo" />
+          Activo
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/inmuebles" class="btn btn-outline">Cancelar</a>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="form.invalid || saving"
+        >
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

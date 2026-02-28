@@ -1,0 +1,12 @@
+.zona-comun-form { max-width: 500px; padding: 1.5rem; }
+.form-title { font-family: var(--font-mono); font-size: 1.5rem; color: var(--neon-green); margin: 0 0 1.5rem; }
+.form-loading { color: var(--text-secondary); }
+.form-card { padding: 1.5rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.35rem; font-size: 0.85rem; color: var(--text-secondary); }
+.input { width: 100%; padding: 0.6rem 0.9rem; background: rgba(0,0,0,0.3); border: var(--border-subtle); border-radius: 4px; color: var(--text-primary); }
+.alert-error { background: rgba(255,59,59,0.15); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 0.6rem; border-radius: 4px; margin-bottom: 1rem; }
+.form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.btn { padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
+.btn-primary { background: var(--neon-green); color: var(--bg-dark); }
+.btn-outline { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); }

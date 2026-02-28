@@ -1,0 +1,43 @@
+<div class="zona-comun-list">
+  <div class="list-header">
+    <h1 class="list-header__title">Zonas comunes</h1>
+    <a routerLink="/zonas-comunes/nuevo" class="btn btn-primary">Nueva zona</a>
+  </div>
+
+  <div class="table-wrap panel-hud">
+    @if (loading) {
+      <div class="table-loading">Cargando...</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (z of zonas(); track z.id) {
+            <tr>
+              <td>{{ z.nombre }}</td>
+              <td>{{ z.descripcion || '—' }}</td>
+              <td>
+                <a [routerLink]="['/zonas-comunes', z.id, 'editar']" class="link">Editar</a>
+                @if (deleteConfirmId() === z.id) {
+                  <span class="delete-confirm">
+                    <button type="button" class="btn-link btn-link-danger" (click)="doDelete(z.id)">Confirmar</button>
+                    <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
+                  </span>
+                } @else {
+                  <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(z.id)">Eliminar</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="3">No hay zonas comunes</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

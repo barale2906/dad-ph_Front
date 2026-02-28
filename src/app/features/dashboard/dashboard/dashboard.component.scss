@@ -1,0 +1,33 @@
+.dashboard {
+  max-width: 800px;
+}
+
+.dashboard__title {
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+  margin: 0 0 0.5rem;
+}
+
+.dashboard__welcome {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem;
+}
+
+.dashboard__status {
+  display: inline-flex;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.status-indicator {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+
+  &.status-online {
+    color: var(--neon-green);
+  }
+}

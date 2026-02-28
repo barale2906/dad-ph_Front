@@ -1,0 +1,21 @@
+<div class="resultados panel-hud">
+  @if (loading) {
+    <div class="resultados-loading">Cargando resultados...</div>
+  } @else if (resultados(); as r) {
+    <h3 class="resultados-title">{{ r.pregunta }}</h3>
+    <div class="resultados-total">Total votos: {{ r.total_votos | number }}</div>
+    <div class="resultados-bars">
+      @for (op of r.opciones; track op.opcion_id) {
+        <div class="resultados-row">
+          <span class="resultados-label">{{ op.texto }}</span>
+          <div class="resultados-bar-wrap">
+            <div class="resultados-bar" [style.width.%]="op.porcentaje"></div>
+          </div>
+          <span class="resultados-value">{{ op.votos | number }} ({{ op.porcentaje | number:'1.1-1' }}%)</span>
+        </div>
+      } @empty {
+        <div class="resultados-empty">Sin votos registrados</div>
+      }
+    </div>
+  }
+</div>

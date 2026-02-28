@@ -1,0 +1,27 @@
+<div class="zona-comun-form">
+  <h1 class="form-title">{{ isEdit ? 'Editar zona común' : 'Nueva zona común' }}</h1>
+
+  @if (loading) {
+    <div class="form-loading">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" formControlName="nombre" class="input" />
+      </div>
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" formControlName="descripcion" class="input" rows="3"></textarea>
+      </div>
+      <div class="form-actions">
+        <a routerLink="/zonas-comunes" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -1,0 +1,73 @@
+<div class="user-form">
+  <h1 class="form-title">{{ isEdit ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+
+  @if (loading) {
+    <div class="form-loading">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+      @if (errorMessage) {
+        <div class="alert alert-error">{{ errorMessage }}</div>
+      }
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input formControlName="name" class="input" />
+          @if (validationErrors['name']) {
+            <span class="form-error">{{ validationErrors['name'][0] }}</span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Correo</label>
+          <input formControlName="email" type="email" class="input" [readonly]="isEdit" />
+          @if (validationErrors['email']) {
+            <span class="form-error">{{ validationErrors['email'][0] }}</span>
+          }
+        </div>
+      </div>
+
+      @if (!isEdit) {
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contraseña (mín. 8 caracteres)</label>
+            <input formControlName="password" type="password" class="input" />
+            @if (validationErrors['password']) {
+              <span class="form-error">{{ validationErrors['password'][0] }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Confirmar contraseña</label>
+            <input formControlName="password_confirmation" type="password" class="input" />
+          </div>
+        </div>
+      }
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rol</label>
+          <select formControlName="role" class="input">
+            @for (r of roles; track r.value) {
+              <option [value]="r.value">{{ r.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Documento</label>
+          <input formControlName="document" class="input" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input formControlName="phone" class="input" />
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/usuarios" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

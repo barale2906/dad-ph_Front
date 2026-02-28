@@ -1,0 +1,59 @@
+<div class="pregunta-list">
+  <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a reunión</a>
+
+  @if (reunion(); as r) {
+    <h1 class="page-title">Preguntas de votación - {{ r.tipo }} {{ r.ente }}</h1>
+  }
+
+  <div class="actions-bar">
+    <select [ngModel]="filterEstado()" (ngModelChange)="filterEstado.set($event); load()" class="input">
+      <option value="">Todos los estados</option>
+      <option value="inactiva">Inactiva</option>
+      <option value="abierta">Abierta</option>
+      <option value="cerrada">Cerrada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+    <a [routerLink]="['/reuniones', reunionId, 'preguntas', 'nueva']" class="btn btn-primary">
+      Nueva pregunta
+    </a>
+  </div>
+
+  @if (loading) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="preguntas-wrap">
+      @for (p of filteredPreguntas(); track p.id) {
+        <div class="pregunta-card panel-hud" [class]="'estado-' + p.estado">
+          <div class="pregunta-header">
+            <span class="pregunta-orden">{{ p.orden }}</span>
+            <span class="pregunta-texto">{{ p.pregunta }}</span>
+            <span class="badge badge-{{ p.estado }}">{{ p.estado }}</span>
+            <div class="pregunta-actions">
+              @if (p.estado === 'cerrada') {
+                <a [routerLink]="['/reuniones', reunionId, 'preguntas', p.id, 'resultados']" class="link">Ver resultados</a>
+              }
+              <a [routerLink]="['/reuniones', reunionId, 'preguntas', p.id, 'editar']" class="link">Editar</a>
+              @if (deleteConfirmId() === p.id) {
+                <button type="button" class="btn-link btn-link-danger" (click)="doDelete(p.id)">Confirmar</button>
+                <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
+              } @else {
+                <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(p.id)">Eliminar</button>
+              }
+            </div>
+          </div>
+          @if (p.opciones && p.opciones.length > 0) {
+            <ul class="opciones-list">
+              @for (o of p.opciones; track o.id) {
+                <li>{{ o.texto }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="sin-opciones">Sin opciones definidas</p>
+          }
+        </div>
+      } @empty {
+        <div class="empty-state">No hay preguntas para esta reunión</div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,139 @@
+<div class="inmueble-list">
+  <div class="list-header">
+    <h1 class="list-header__title">Inmuebles</h1>
+    <div class="list-header__actions">
+      <a routerLink="/inmuebles/carga-masiva" class="btn btn-outline">Carga masiva</a>
+      <a routerLink="/inmuebles/nuevo" class="btn btn-primary">Nuevo inmueble</a>
+    </div>
+  </div>
+
+  @if (coeficientesStatus(); as cs) {
+    <div class="coef-panel panel-hud" [class]="getEstadoClass(cs.estado)">
+      <span class="coef-panel__label">Coeficientes:</span>
+      <span class="coef-panel__value">{{ cs.suma }}% / {{ cs.total }}%</span>
+      <span class="coef-panel__estado">{{ cs.estado }}</span>
+    </div>
+  }
+
+  <div class="filters panel-hud">
+    <input
+      type="text"
+      placeholder="Nomenclatura"
+      [ngModel]="filters().nomenclatura"
+      (ngModelChange)="filters.update(f => ({ ...f, nomenclatura: $event }))"
+      class="input"
+    />
+    <input
+      type="text"
+      placeholder="Tipo"
+      [ngModel]="filters().tipo"
+      (ngModelChange)="filters.update(f => ({ ...f, tipo: $event }))"
+      class="input"
+    />
+    <select
+      [ngModel]="filters().activo"
+      (ngModelChange)="filters.update(f => ({ ...f, activo: $event }))"
+      class="input"
+    >
+      <option value="">Todos</option>
+      <option value="true">Activos</option>
+      <option value="false">Inactivos</option>
+    </select>
+    <button type="button" class="btn btn-outline" (click)="applyFilters()">
+      Filtrar
+    </button>
+  </div>
+
+  <div class="table-wrap panel-hud">
+    @if (loading) {
+      <div class="table-loading">Cargando...</div>
+    } @else {
+      <table class="inmueble-table">
+        <thead>
+          <tr>
+            <th>Nomenclatura</th>
+            <th>Coef.</th>
+            <th>Tipo</th>
+            <th>Propietario</th>
+            <th>Contacto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of inmuebles(); track item.id) {
+            <tr>
+              <td>{{ item.nomenclatura }}</td>
+              <td>{{ item.coeficiente }}%</td>
+              <td>{{ item.tipo || '—' }}</td>
+              <td>{{ item.propietario_nombre || '—' }}</td>
+              <td>{{ item.telefono || item.email || '—' }}</td>
+              <td>
+                <span [class.badge-inactive]="!item.activo">
+                  {{ item.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <a [routerLink]="['/inmuebles', item.id, 'editar']" class="link">Editar</a>
+                @if (deleteConfirmId() === item.id) {
+                  <span class="delete-confirm">
+                    <button
+                      type="button"
+                      class="btn-link btn-link-danger"
+                      (click)="doDelete(item.id)"
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-link"
+                      (click)="cancelDelete()"
+                    >
+                      Cancelar
+                    </button>
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-link btn-link-danger"
+                    (click)="confirmDelete(item.id)"
+                  >
+                    Eliminar
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">No hay inmuebles registrados</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (meta() && totalPaginas() > 1) {
+        <div class="pagination">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            [disabled]="filters().pagina <= 1"
+            (click)="goPage(filters().pagina - 1)"
+          >
+            Anterior
+          </button>
+          <span class="pagination__info">
+            Página {{ filters().pagina }} de {{ totalPaginas() }}
+          </span>
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            [disabled]="filters().pagina >= totalPaginas()"
+            (click)="goPage(filters().pagina + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
