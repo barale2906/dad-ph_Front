@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap, catchError, of } from 'rxjs';
 import { ApiService } from '../../http/api.service';
+import { MenuService } from '../../menu/menu.service';
 
 const TOKEN_KEY = 'uniph_token';
 const USER_KEY = 'uniph_user';
@@ -24,6 +25,7 @@ export interface LoginCredentials {
 export class AuthService {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly menuService = inject(MenuService);
 
   private readonly _user = signal<User | null>(null);
   readonly user = this._user.asReadonly();
@@ -55,6 +57,7 @@ export class AuthService {
 
   /** Limpia sesión sin llamar al API (útil en 401) */
   clearSession(): void {
+    this.menuService.clear();
     this.clearToken();
     this.router.navigate(['/login']);
   }

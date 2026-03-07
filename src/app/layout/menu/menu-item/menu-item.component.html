@@ -1,0 +1,42 @@
+@if (hasChildren) {
+  <div class="menu-group" [class.menu-group--nested]="level() > 0">
+    <button
+      type="button"
+      class="menu-group__trigger"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="'submenu-' + item().key"
+      (click)="toggle()"
+    >
+      @if (item().icon) {
+        <app-menu-icon [name]="item().icon" class="menu-group__icon" />
+      }
+      <span class="menu-group__label">{{ item().label }}</span>
+      <span class="menu-group__chevron" [class.menu-group__chevron--open]="expanded()">
+        ▾
+      </span>
+    </button>
+    @if (expanded()) {
+      <nav
+        [id]="'submenu-' + item().key"
+        class="menu-group__children"
+        [attr.aria-label]="item().label"
+      >
+        @for (child of childItems; track child.key) {
+          <app-menu-item [item]="child" [level]="level() + 1" />
+        }
+      </nav>
+    }
+  </div>
+} @else {
+  <a
+    [routerLink]="normalizedRoute(item())"
+    routerLinkActive="sidebar-link--active"
+    class="sidebar-link"
+    [class.sidebar-link--nested]="level() > 0"
+  >
+    @if (item().icon) {
+      <app-menu-icon [name]="item().icon" class="sidebar-link__icon" />
+    }
+    <span class="sidebar-link__label">{{ item().label }}</span>
+  </a>
+}

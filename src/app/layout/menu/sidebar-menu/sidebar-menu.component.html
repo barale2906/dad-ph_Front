@@ -1,0 +1,19 @@
+<nav class="sidebar-menu" role="navigation" aria-label="Menú principal">
+  @if (loading()) {
+    <div class="sidebar-menu__loading" aria-busy="true">
+      <span class="sidebar-menu__loading-text">Cargando menú…</span>
+    </div>
+  } @else if (error(); as err) {
+    <div class="sidebar-menu__error" role="alert">
+      {{ err }}
+    </div>
+  } @else {
+    <ul class="sidebar-menu__list">
+      @for (item of menu(); track item.key) {
+        <li class="sidebar-menu__item">
+          <app-menu-item [item]="item" [level]="0" />
+        </li>
+      }
+    </ul>
+  }
+</nav>

@@ -18,34 +18,7 @@
   </header>
 
   <aside class="sidebar panel-hud" aria-label="Navegación principal">
-    <nav class="sidebar__nav" role="navigation">
-      <a routerLink="/dashboard" routerLinkActive="active" class="sidebar-link">
-        <span class="sidebar-link__label">Inicio</span>
-      </a>
-      <a routerLink="/perfil" routerLinkActive="active" class="sidebar-link">
-        <span class="sidebar-link__label">Perfil</span>
-      </a>
-      @if (auth.hasRole(['SUPER_ADMIN', 'ADMIN_PH'])) {
-        <a routerLink="/ph" routerLinkActive="active" class="sidebar-link">
-          <span class="sidebar-link__label">Propiedad Horizontal</span>
-        </a>
-        <a routerLink="/inmuebles" routerLinkActive="active" class="sidebar-link">
-          <span class="sidebar-link__label">Inmuebles</span>
-        </a>
-        <a routerLink="/zonas-comunes" routerLinkActive="active" class="sidebar-link">
-          <span class="sidebar-link__label">Zonas comunes</span>
-        </a>
-        <a routerLink="/usuarios" routerLinkActive="active" class="sidebar-link">
-          <span class="sidebar-link__label">Usuarios</span>
-        </a>
-        <a routerLink="/reuniones" routerLinkActive="active" class="sidebar-link">
-          <span class="sidebar-link__label">Reuniones</span>
-        </a>
-        <a routerLink="/asistentes" routerLinkActive="active" class="sidebar-link">
-          <span class="sidebar-link__label">Asistentes</span>
-        </a>
-      }
-    </nav>
+    <app-sidebar-menu />
   </aside>
 
   <main class="content" role="main" aria-label="Contenido principal">
