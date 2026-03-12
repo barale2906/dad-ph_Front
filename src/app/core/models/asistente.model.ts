@@ -35,3 +35,31 @@ export interface AsistenteCreatePayload {
 }
 
 export interface AsistenteUpdatePayload extends AsistenteCreatePayload {}
+
+/** Registro de asistencia en una reunión específica (GET/POST /reuniones/:id/asistentes) */
+export interface AsistenteReunionInmueble {
+  id: number;
+  nomenclatura: string;
+  coeficiente: number;
+  poder_url: string | null;
+}
+
+export interface AsistenteReunion {
+  id: number;
+  reunion_id: number;
+  telefono: string | null;
+  codigo_barras: number | null;
+  inmuebles: AsistenteReunionInmueble[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AsistenteReunionCreatePayload {
+  telefono?: string | null;
+  codigo_barras?: number | null;
+  inmuebles: {
+    inmueble_id: number;
+    coeficiente?: number | null;
+    poder_url?: string | null;
+  }[];
+}

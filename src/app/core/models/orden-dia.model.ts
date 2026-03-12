@@ -16,11 +16,17 @@ export interface OrdenDiaCreatePayload {
 }
 
 export interface OrdenDiaUpdatePayload {
-  titulo?: string;
-  descripcion?: string;
-  orden?: number;
+  titulo: string;
+  descripcion?: string | null;
+  orden: number;
+  ejecutado?: boolean;
 }
 
 export interface ReordenarPayload {
   items: Array<{ id: number; orden: number }>;
+}
+
+export interface CargaMasivaOrdenDiaResult {
+  creados: number;
+  errores: Record<string, string[]>;
 }

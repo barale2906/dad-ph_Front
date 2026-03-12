@@ -1,114 +1,179 @@
-<div class="reunion-list">
-  <div class="list-header">
-    <h1 class="list-header__title">Reuniones</h1>
-    <a routerLink="/reuniones/nueva" class="btn btn-primary">Nueva reunión</a>
+<div class="cal-view">
+
+  <!-- ── Cabecera del calendario ── -->
+  <div class="cal-view__header">
+    <div class="cal-view__title">
+      <span class="cal-view__month">{{ monthLabel() }}</span>
+    </div>
+    <div class="cal-view__controls">
+      <button type="button" class="btn btn-outline btn-sm" (click)="goToToday()">Hoy</button>
+      <div class="cal-nav">
+        <button type="button" class="cal-nav__btn" (click)="prevMonth()" aria-label="Mes anterior">
+          &#8592;
+        </button>
+        <button type="button" class="cal-nav__btn" (click)="nextMonth()" aria-label="Mes siguiente">
+          &#8594;
+        </button>
+      </div>
+    </div>
   </div>
 
-  <div class="filters panel-hud">
-    <select
-      [ngModel]="filters().estado"
-      (ngModelChange)="filters.update(f => ({ ...f, estado: $event }))"
-      class="input"
-    >
-      <option value="">Todos los estados</option>
-      <option value="programada">Programada</option>
-      <option value="en_curso">En curso</option>
-      <option value="finalizada">Finalizada</option>
-      <option value="cancelada">Cancelada</option>
-    </select>
-    <select
-      [ngModel]="filters().tipo"
-      (ngModelChange)="filters.update(f => ({ ...f, tipo: $event }))"
-      class="input"
-    >
-      <option value="">Todos los tipos</option>
-      <option value="ordinaria">Ordinaria</option>
-      <option value="extraordinaria">Extraordinaria</option>
-    </select>
-    <button type="button" class="btn btn-outline" (click)="applyFilters()">
-      Filtrar
-    </button>
+  <!-- ── Leyenda de estados ── -->
+  <div class="cal-legend">
+    <span class="legend-item"><span class="legend-dot dot--programada"></span>Programada</span>
+    <span class="legend-item"><span class="legend-dot dot--en-curso"></span>En curso</span>
+    <span class="legend-item"><span class="legend-dot dot--finalizada"></span>Finalizada</span>
+    <span class="legend-item"><span class="legend-dot dot--cancelada"></span>Cancelada</span>
+    <span class="legend-hint">Clic en día vacío para crear reunión</span>
   </div>
 
-  <div class="table-wrap panel-hud">
-    @if (loading) {
-      <div class="table-loading">Cargando...</div>
-    } @else {
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Hora</th>
-            <th>Tipo</th>
-            <th>Modalidad</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of reuniones(); track r.id) {
-            <tr>
-              <td>{{ formatFecha(r.fecha) }}</td>
-              <td>{{ r.hora }}</td>
-              <td>{{ r.tipo }}</td>
-              <td>{{ r.modalidad }}</td>
-              <td>
-                <span class="badge" [class]="'badge-' + r.estado">
-                  {{ r.estado }}
-                </span>
-              </td>
-              <td>
-                <a [routerLink]="['/reuniones', r.id]" class="link">Ver</a>
-                <a [routerLink]="['/reuniones', r.id, 'editar']" class="link">Editar</a>
-                @if (r.estado === 'programada') {
-                  <button
-                    type="button"
-                    class="btn-link btn-link-success"
-                    [disabled]="actionLoadingId() === r.id"
-                    (click)="iniciar(r)"
-                  >
-                    Iniciar
-                  </button>
-                }
-                @if (r.estado === 'en_curso') {
-                  <button
-                    type="button"
-                    class="btn-link btn-link-warn"
-                    [disabled]="actionLoadingId() === r.id"
-                    (click)="cerrar(r)"
-                  >
-                    Cerrar
-                  </button>
-                }
-                @if (deleteConfirmId() === r.id) {
-                  <span class="delete-confirm">
-                    <button type="button" class="btn-link btn-link-danger" (click)="doDelete(r.id)">Confirmar</button>
-                    <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
-                  </span>
-                } @else if (r.estado !== 'en_curso') {
-                  <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(r.id)">Eliminar</button>
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="6">No hay reuniones</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  @if (loading()) {
+    <div class="cal-loading">
+      <span class="cal-loading__dot"></span>
+      <span class="cal-loading__dot"></span>
+      <span class="cal-loading__dot"></span>
+      <span class="cal-loading__text">Cargando reuniones...</span>
+    </div>
+  } @else {
 
-      @if (meta() && totalPaginas() > 1) {
-        <div class="pagination">
-          <button type="button" class="btn btn-outline btn-sm" [disabled]="filters().pagina <= 1" (click)="goPage(filters().pagina - 1)">
-            Anterior
-          </button>
-          <span class="pagination__info">Página {{ filters().pagina }} de {{ totalPaginas() }}</span>
-          <button type="button" class="btn btn-outline btn-sm" [disabled]="filters().pagina >= totalPaginas()" (click)="goPage(filters().pagina + 1)">
-            Siguiente
-          </button>
+    <!-- ── Calendario ── -->
+    <div class="calendar panel-hud">
+
+      <!-- Cabecera de días de la semana -->
+      <div class="cal-weekdays">
+        @for (name of DAY_NAMES; track name) {
+          <div class="cal-weekday">{{ name }}</div>
+        }
+      </div>
+
+      <!-- Cuadrícula de días -->
+      <div class="cal-grid">
+        @for (day of calendarDays(); track day.dateStr) {
+          <div
+            class="cal-cell"
+            [class.cal-cell--other]="!day.isCurrentMonth"
+            [class.cal-cell--today]="day.isToday"
+            [class.cal-cell--clickable]="day.isCurrentMonth && day.reuniones.length === 0"
+            (click)="day.isCurrentMonth && day.reuniones.length === 0 ? openNewModal(day) : null"
+            [attr.aria-label]="day.isCurrentMonth && day.reuniones.length === 0 ? 'Crear reunión el ' + day.dateStr : null"
+            [attr.role]="day.isCurrentMonth && day.reuniones.length === 0 ? 'button' : null"
+          >
+            <span class="cal-cell__num">{{ day.date.getDate() }}</span>
+
+            <div class="cal-cell__events">
+              @for (r of day.reuniones; track r.id) {
+                <button
+                  type="button"
+                  class="cal-event"
+                  [class]="estadoClass(r.estado)"
+                  (click)="openReunion(r, $event)"
+                  [title]="r.tipo + ' · ' + r.ente + ' · ' + (r.hora | slice:0:5)"
+                >
+                  <span class="cal-event__time">{{ r.hora | slice:0:5 }}</span>
+                  <span class="cal-event__info">{{ tipoLabel(r.tipo) }} · {{ r.ente }}</span>
+                </button>
+              }
+            </div>
+
+            @if (day.isCurrentMonth && day.reuniones.length === 0) {
+              <span class="cal-cell__add" aria-hidden="true">+</span>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+  <!-- ── Modal: Nueva Reunión ── -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+        <div class="modal__header">
+          <h2 id="modal-title" class="modal__title">Nueva Reunión</h2>
+          <button type="button" class="modal__close" (click)="closeModal()" aria-label="Cerrar">&#10005;</button>
         </div>
-      }
-    }
-  </div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal__form">
+
+          @if (errorMessage()) {
+            <div class="alert alert-error">{{ errorMessage() }}</div>
+          }
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="m-tipo">Tipo</label>
+              <select id="m-tipo" formControlName="tipo" class="input">
+                @for (t of tipos; track t.value) {
+                  <option [value]="t.value">{{ t.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="m-ente">Ente convocante</label>
+              <select id="m-ente" formControlName="ente" class="input">
+                @for (e of entes; track e.value) {
+                  <option [value]="e.value">{{ e.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="m-fecha">Fecha</label>
+              <input id="m-fecha" formControlName="fecha" type="date" class="input" />
+              @if (validationErrors()['fecha']) {
+                <span class="form-error">{{ validationErrors()['fecha'][0] }}</span>
+              }
+            </div>
+            <div class="form-group">
+              <label for="m-hora">Hora</label>
+              <input id="m-hora" formControlName="hora" type="time" class="input" />
+              @if (validationErrors()['hora']) {
+                <span class="form-error">{{ validationErrors()['hora'][0] }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="m-modalidad">Modalidad</label>
+            <select id="m-modalidad" formControlName="modalidad" class="input">
+              @for (m of modalidades; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+
+          @if (zonasComunes().length > 0) {
+            <div class="form-group">
+              <label>Zonas comunes</label>
+              <div class="zonas-checkboxes">
+                @for (z of zonasComunes(); track z.id) {
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      [checked]="form.get('zona_comun_ids')?.value?.includes(z.id)"
+                      (change)="toggleZona(z.id)"
+                    />
+                    {{ z.nombre }}
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="modal__actions">
+            <button type="button" class="btn btn-outline" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+              {{ saving() ? 'Guardando...' : 'Crear Reunión' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
 </div>

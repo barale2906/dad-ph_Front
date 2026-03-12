@@ -1,12 +1,12 @@
 <div class="reunion-form">
   <h1 class="form-title">{{ isEdit ? 'Editar reunión' : 'Nueva reunión' }}</h1>
 
-  @if (loading) {
+  @if (loading()) {
     <div class="form-loading">Cargando...</div>
   } @else {
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
-      @if (errorMessage) {
-        <div class="alert alert-error">{{ errorMessage }}</div>
+      @if (errorMessage()) {
+        <div class="alert alert-error">{{ errorMessage() }}</div>
       }
 
       <div class="form-row">
@@ -32,15 +32,15 @@
         <div class="form-group">
           <label>Fecha</label>
           <input formControlName="fecha" type="date" class="input" />
-          @if (validationErrors['fecha']) {
-            <span class="form-error">{{ validationErrors['fecha'][0] }}</span>
+          @if (validationErrors()['fecha']) {
+            <span class="form-error">{{ validationErrors()['fecha'][0] }}</span>
           }
         </div>
         <div class="form-group">
           <label>Hora</label>
           <input formControlName="hora" type="time" class="input" />
-          @if (validationErrors['hora']) {
-            <span class="form-error">{{ validationErrors['hora'][0] }}</span>
+          @if (validationErrors()['hora']) {
+            <span class="form-error">{{ validationErrors()['hora'][0] }}</span>
           }
         </div>
       </div>
@@ -74,8 +74,8 @@
 
       <div class="form-actions">
         <a routerLink="/reuniones" class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
-          {{ saving ? 'Guardando...' : 'Guardar' }}
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
         </button>
       </div>
     </form>

@@ -15,8 +15,8 @@ export class CargaMasivaComponent {
   protected fileInputRef = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   protected result = signal<CargaMasivaResult | null>(null);
-  protected loading = false;
-  protected errorMessage = '';
+  protected loading = signal(false);
+  protected errorMessage = signal('');
 
   protected downloadTemplate() {
     const headers = [
@@ -50,26 +50,40 @@ export class CargaMasivaComponent {
     if (!file) return;
 
     if (!file.name.endsWith('.csv')) {
-      this.errorMessage = 'Seleccione un archivo CSV.';
+      this.errorMessage.set('Seleccione un archivo CSV.');
       return;
     }
 
-    this.loading = true;
-    this.errorMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
     this.result.set(null);
 
     this.inmuebleService.cargaMasiva(file).subscribe({
-      next: (res) => this.result.set(res),
-      error: (err) => {
-        this.loading = false;
-        this.errorMessage =
-          err?.error?.message ?? 'Error al procesar el archivo.';
-      },
-      complete: () => {
-        this.loading = false;
+      next: (res) => {
+        this.result.set(res);
+        this.loading.set(false);
         input.value = '';
+      },
+      error: (err) => {
+        this.loading.set(false);
+        input.value = '';
+        // 422: carga finalizada con errores — la API devuelve los datos parciales
+        const errData: CargaMasivaResult | undefined = err?.error?.data;
+        if (errData) {
+          this.result.set(errData);
+          this.errorMessage.set(err?.error?.message ?? 'Carga finalizada con errores.');
+        } else {
+          this.errorMessage.set(err?.error?.message ?? 'Error al procesar el archivo.');
+        }
       },
     });
   }
 
+  protected getErrorEntries(errores: Record<string, string[]>): [string, string[]][] {
+    return Object.entries(errores);
+  }
+
+  protected hasErrors(errores: Record<string, string[]>): boolean {
+    return Object.keys(errores).length > 0;
+  }
 }

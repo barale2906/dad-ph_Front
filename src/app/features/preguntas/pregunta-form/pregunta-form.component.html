@@ -1,62 +1,415 @@
-<div class="pregunta-form">
-  <a [routerLink]="['/reuniones', reunionId, 'preguntas']" class="back-link">← Volver a preguntas</a>
+<div class="vot-page">
 
-  <h1 class="page-title">{{ isEdit ? 'Editar pregunta' : 'Nueva pregunta' }}</h1>
+  <!-- Cabecera -->
+  <div class="vot-header">
+    <a [routerLink]="['/reuniones', reunionId, 'preguntas']" class="back-link">← Volver a votaciones</a>
 
-  @if (loading) {
-    <div class="loading">Cargando...</div>
-  } @else {
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
-      @if (errorMessage) {
-        <div class="alert alert-error">{{ errorMessage }}</div>
+    <div class="vot-title-row">
+      <h1 class="page-title">
+        {{ isEdit ? 'Gestionar votación' : 'Nueva votación' }}
+      </h1>
+      @if (pregunta(); as p) {
+        <span class="estado-badge estado-{{ p.estado }}">{{ p.estado }}</span>
       }
+    </div>
+  </div>
 
-      <div class="form-group">
-        <label>Pregunta</label>
-        <textarea formControlName="pregunta" class="input" rows="2" placeholder="Texto de la pregunta"></textarea>
-      </div>
+  <!-- Tabs (solo visibles cuando ya existe la pregunta) -->
+  @if (hasQuestion()) {
+    <div class="vot-tabs" role="tablist">
+      <button
+        role="tab"
+        [class.active]="activeTab() === 'config'"
+        (click)="activeTab.set('config')"
+      >
+        Configuración
+      </button>
+      <button
+        role="tab"
+        [class.active]="activeTab() === 'votar'"
+        (click)="activeTab.set('votar')"
+      >
+        Votación
+      </button>
+      <button
+        role="tab"
+        [class.active]="activeTab() === 'resultados'"
+        (click)="activeTab.set('resultados'); refreshResultados()"
+      >
+        Resultados
+      </button>
+    </div>
+  }
 
-      <div class="form-row">
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: CONFIGURACIÓN                                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  @if (!hasQuestion() || activeTab() === 'config') {
+    @if (loading()) {
+      <div class="loading-msg">Cargando...</div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+
+        @if (errorMessage()) {
+          <div class="alert-error">{{ errorMessage() }}</div>
+        }
+
         <div class="form-group">
-          <label>Estado</label>
-          <select formControlName="estado" class="input">
-            @for (e of estados; track e.value) {
-              <option [value]="e.value">{{ e.label }}</option>
+          <label>Texto de la pregunta</label>
+          <textarea
+            formControlName="pregunta"
+            class="input"
+            rows="3"
+            placeholder="¿Aprueba el presupuesto anual 2026?"
+          ></textarea>
+        </div>
+
+        <!-- Opciones de respuesta -->
+        <div class="opciones-section">
+          <div class="opciones-header">
+            <h3>Opciones de respuesta</h3>
+            <button type="button" class="btn btn-outline btn-sm" (click)="addNuevaOpcion()">
+              + Agregar opción
+            </button>
+          </div>
+
+          <div formArrayName="opciones" class="opciones-list">
+            @for (ctrl of opcionesArray.controls; track $index; let i = $index) {
+              <div class="opcion-row" [formGroupName]="i">
+                <span class="opcion-num">{{ i + 1 }}.</span>
+                <input
+                  formControlName="texto"
+                  class="input opcion-texto"
+                  placeholder="Texto de la opción"
+                />
+                <input
+                  formControlName="orden"
+                  type="number"
+                  min="1"
+                  class="input input-sm"
+                  title="Orden"
+                />
+                <button
+                  type="button"
+                  class="btn-link btn-link-danger"
+                  (click)="removeOpcion(i)"
+                  title="Quitar opción"
+                >
+                  ✕
+                </button>
+              </div>
             }
-          </select>
+            @if (opcionesArray.length === 0) {
+              <p class="sin-opciones">Sin opciones definidas. Agrega al menos dos.</p>
+            }
+          </div>
         </div>
-        <div class="form-group">
-          <label>Orden</label>
-          <input formControlName="orden" type="number" min="0" class="input" />
-        </div>
-      </div>
 
-      <div class="opciones-section">
-        <div class="opciones-header">
-          <h3>Opciones de respuesta</h3>
-          <button type="button" class="btn btn-outline btn-sm" (click)="addNuevaOpcion()">
-            + Agregar opción
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" (click)="goBack()">Cancelar</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="form.invalid || saving()"
+          >
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
           </button>
         </div>
-        <div formArrayName="opciones" class="opciones-list">
-          @for (ctrl of opcionesArray.controls; track $index; let i = $index) {
-            <div class="opcion-row" [formGroupName]="i">
-              <input formControlName="texto" class="input" placeholder="Texto de la opción" />
-              <input formControlName="orden" type="number" min="0" class="input input-orden" />
-              <button type="button" class="btn-link btn-link-danger" (click)="removeOpcion(i)">
-                Quitar
-              </button>
-            </div>
+
+      </form>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: VOTACIÓN                                                          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  @if (hasQuestion() && activeTab() === 'votar') {
+    <div class="votar-panel panel-hud">
+
+      <!-- Estado y controles -->
+      <div class="estado-section">
+        <div class="estado-info">
+          <span class="estado-label">Estado actual:</span>
+          <span class="estado-badge estado-{{ estadoActual() }}">{{ estadoActual() }}</span>
+        </div>
+        <div class="estado-actions">
+          @if (estadoActual() === 'inactiva') {
+            <button
+              class="btn btn-success"
+              (click)="abrirVotacion()"
+              [disabled]="actionLoading() || opcionesActuales().length < 2"
+            >
+              {{ actionLoading() ? 'Abriendo...' : '▶ Abrir votación' }}
+            </button>
+            @if (opcionesActuales().length < 2) {
+              <span class="hint-text">Necesitas al menos 2 opciones para abrir la votación.</span>
+            }
+          }
+          @if (estadoActual() === 'abierta') {
+            <button
+              class="btn btn-danger"
+              (click)="cerrarVotacion()"
+              [disabled]="actionLoading()"
+            >
+              {{ actionLoading() ? 'Cerrando...' : '⏹ Cerrar votación' }}
+            </button>
+            <button
+              class="btn btn-outline"
+              (click)="cancelarVotacion()"
+              [disabled]="actionLoading()"
+            >
+              Cancelar
+            </button>
+          }
+          @if (estadoActual() === 'cerrada') {
+            <span class="hint-text">La votación está cerrada. Consulta los resultados en la pestaña Resultados.</span>
+          }
+          @if (estadoActual() === 'cancelada') {
+            <span class="hint-text estado-cancelada">Votación cancelada.</span>
           }
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-outline" (click)="goBack()">Cancelar</button>
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
-          {{ saving ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </div>
-    </form>
+      <!-- Scanner de código de barras (solo cuando está abierta) -->
+      @if (estadoActual() === 'abierta') {
+        <div class="scanner-section">
+          <h3 class="scanner-title">Registrar voto</h3>
+
+          <!-- Selección de opción -->
+          <div class="opcion-selector">
+            <p class="selector-label">1. Selecciona la opción de voto:</p>
+            <div class="opcion-btns">
+              @for (op of opcionesActuales(); track op.id) {
+                <button
+                  type="button"
+                  class="btn-opcion"
+                  [class.selected]="selectedOpcionId() === op.id"
+                  (click)="selectOpcion(op.id)"
+                >
+                  {{ op.texto }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Input del código de barras -->
+          @if (selectedOpcionId()) {
+            <div class="barcode-section">
+              <p class="selector-label">2. Escanea o ingresa el código de barras:</p>
+              <div class="barcode-row">
+                <input
+                  #barcodeRef
+                  type="text"
+                  class="input barcode-input"
+                  placeholder="Código de barras..."
+                  [value]="barcodeValue()"
+                  (input)="onBarcodeInput($event)"
+                  (keydown)="onBarcodeKeydown($event)"
+                  [disabled]="votoLoading()"
+                  autocomplete="off"
+                />
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="registrarVoto()"
+                  [disabled]="!barcodeValue().trim() || votoLoading()"
+                >
+                  {{ votoLoading() ? '...' : 'Registrar' }}
+                </button>
+              </div>
+
+              <div class="barcode-opcion-sel">
+                Opción seleccionada:
+                <strong>
+                  {{ opcionesActuales().find(o => o.id === selectedOpcionId())?.texto }}
+                </strong>
+              </div>
+
+              @if (votoMsg()) {
+                <div class="alert-success">✓ {{ votoMsg() }}</div>
+              }
+              @if (votoError()) {
+                <div class="alert-error">{{ votoError() }}</div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </div>
   }
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: RESULTADOS                                                        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  @if (hasQuestion() && activeTab() === 'resultados') {
+    <div class="resultados-panel">
+
+      <!-- Cabecera de resultados -->
+      <div class="res-header">
+        <h3 class="res-title">{{ resultados()?.pregunta || pregunta()?.pregunta }}</h3>
+        <div class="res-header-right">
+          @if (estadoActual() === 'abierta') {
+            <span class="live-badge">● EN VIVO</span>
+          }
+          @if (lastRefresh()) {
+            <span class="refresh-time">
+              Actualizado: {{ lastRefresh() | date:'HH:mm:ss' }}
+            </span>
+          }
+          <button
+            class="btn btn-outline btn-sm"
+            (click)="refreshResultados()"
+            [disabled]="loadingResultados()"
+          >
+            {{ loadingResultados() ? '...' : '↻ Actualizar' }}
+          </button>
+        </div>
+      </div>
+
+      @if (loadingResultados() && !resultados()) {
+        <div class="loading-msg">Cargando resultados...</div>
+      } @else if (resultados(); as r) {
+
+        <!-- Tabla de resultados -->
+        <div class="res-table-wrap panel-hud">
+          <table class="res-table">
+            <thead>
+              <tr>
+                <th>Opción</th>
+                <th class="text-right">Votos</th>
+                <th class="text-right">Unidades</th>
+                <th class="text-right">% Unidades</th>
+                @if (hasCoeficienteData()) {
+                  <th class="text-right">Coeficiente</th>
+                  <th class="text-right">% Coef.</th>
+                }
+                <th class="barra-col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (op of r.opciones; track op.opcion_id) {
+                <tr>
+                  <td class="opcion-cell">{{ op.texto }}</td>
+                  <td class="text-right num-cell">{{ op.votos | number }}</td>
+                  <td class="text-right num-cell">
+                    {{ (op.unidades ?? op.votos) | number }}
+                  </td>
+                  <td class="text-right num-cell">
+                    {{ (op.porcentaje_unidades ?? op.porcentaje) | number:'1.1-1' }}%
+                  </td>
+                  @if (hasCoeficienteData()) {
+                    <td class="text-right num-cell">
+                      {{ (op.coeficiente ?? 0) | number:'1.4-4' }}
+                    </td>
+                    <td class="text-right num-cell">
+                      {{ (op.porcentaje_coeficiente ?? 0) | number:'1.1-1' }}%
+                    </td>
+                  }
+                  <td class="barra-col">
+                    <div class="barra-wrap">
+                      <div
+                        class="barra-fill"
+                        [style.width.%]="op.porcentaje_unidades ?? op.porcentaje"
+                      ></div>
+                    </div>
+                  </td>
+                </tr>
+              }
+              @empty {
+                <tr>
+                  <td colspan="7" class="empty-row">Sin votos registrados aún.</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>Total</strong></td>
+                <td class="text-right"><strong>{{ r.total_votos | number }}</strong></td>
+                <td class="text-right">
+                  <strong>{{ (r.total_unidades ?? r.total_votos) | number }}</strong>
+                </td>
+                <td class="text-right">100%</td>
+                @if (hasCoeficienteData()) {
+                  <td class="text-right">
+                    <strong>{{ (r.total_coeficiente ?? 0) | number:'1.4-4' }}</strong>
+                  </td>
+                  <td class="text-right">100%</td>
+                }
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Gráficos de torta -->
+        <div class="charts-grid">
+
+          <!-- Pie: Unidades -->
+          <div class="chart-card panel-hud">
+            <h4 class="chart-title">Distribución por Unidades</h4>
+            @if (pieUnidades().length > 0) {
+              <div class="pie-wrap">
+                <svg viewBox="-1.15 -1.15 2.3 2.3" class="pie-svg">
+                  @for (slice of pieUnidades(); track $index) {
+                    <path [attr.d]="slice.path" [attr.fill]="slice.color">
+                      <title>{{ slice.label }}: {{ slice.percent }}%</title>
+                    </path>
+                  }
+                </svg>
+                <div class="pie-legend">
+                  @for (slice of pieUnidades(); track $index) {
+                    <div class="legend-item">
+                      <span class="legend-dot" [style.background]="slice.color"></span>
+                      <span class="legend-label">{{ slice.label }}</span>
+                      <span class="legend-val">{{ slice.percent }}%</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="chart-empty">Sin datos suficientes.</p>
+            }
+          </div>
+
+          <!-- Pie: Coeficiente (solo si hay datos) -->
+          @if (hasCoeficienteData()) {
+            <div class="chart-card panel-hud">
+              <h4 class="chart-title">Distribución por Coeficiente</h4>
+              @if (pieCoeficiente().length > 0) {
+                <div class="pie-wrap">
+                  <svg viewBox="-1.15 -1.15 2.3 2.3" class="pie-svg">
+                    @for (slice of pieCoeficiente(); track $index) {
+                      <path [attr.d]="slice.path" [attr.fill]="slice.color">
+                        <title>{{ slice.label }}: {{ slice.percent }}%</title>
+                      </path>
+                    }
+                  </svg>
+                  <div class="pie-legend">
+                    @for (slice of pieCoeficiente(); track $index) {
+                      <div class="legend-item">
+                        <span class="legend-dot" [style.background]="slice.color"></span>
+                        <span class="legend-label">{{ slice.label }}</span>
+                        <span class="legend-val">{{ slice.percent }}%</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <p class="chart-empty">Sin datos suficientes.</p>
+              }
+            </div>
+          }
+
+        </div>
+
+      } @else {
+        <div class="empty-resultados panel-hud">
+          Sin resultados disponibles. Abre la votación para comenzar a recibir votos.
+        </div>
+      }
+
+    </div>
+  }
+
 </div>

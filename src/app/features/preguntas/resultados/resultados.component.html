@@ -9,9 +9,15 @@
         <div class="resultados-row">
           <span class="resultados-label">{{ op.texto }}</span>
           <div class="resultados-bar-wrap">
-            <div class="resultados-bar" [style.width.%]="op.porcentaje"></div>
+            <div class="resultados-bar" [style.width.%]="op.porcentaje_unidades ?? op.porcentaje"></div>
           </div>
-          <span class="resultados-value">{{ op.votos | number }} ({{ op.porcentaje | number:'1.1-1' }}%)</span>
+          <span class="resultados-value">
+            {{ (op.unidades ?? op.votos) | number }}
+            ({{ (op.porcentaje_unidades ?? op.porcentaje) | number:'1.1-1' }}%)
+            @if (op.coeficiente !== undefined) {
+              · Coef: {{ op.coeficiente | number:'1.4-4' }}
+            }
+          </span>
         </div>
       } @empty {
         <div class="resultados-empty">Sin votos registrados</div>

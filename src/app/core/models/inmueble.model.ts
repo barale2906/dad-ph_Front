@@ -24,14 +24,15 @@ export interface InmuebleCreatePayload {
 }
 
 export interface CoeficientesValidacion {
-  total: number;
-  suma: number;
-  estado: 'completo' | 'incompleto' | 'exceso' | 'faltante';
-  mensaje?: string;
+  total_coeficientes: number;
+  completo: boolean;
+  estado: 'completo' | 'incompleto';
+  faltante: number;
+  exceso: number;
 }
 
 export interface CargaMasivaResult {
   creados: number;
   actualizados: number;
-  errores: Array<{ fila: number; mensaje: string }>;
+  errores: Record<string, string[]>;
 }

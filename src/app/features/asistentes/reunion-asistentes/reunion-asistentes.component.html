@@ -1,0 +1,155 @@
+<div class="ras-view">
+
+  <!-- Cabecera -->
+  <div class="ras-header">
+    <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a la reunión</a>
+    <h1 class="ras-title">Registro de Asistencia</h1>
+    <div class="ras-header__actions">
+      <a routerLink="/asistentes/barcodes" class="btn btn-outline btn-sm">Imprimir códigos</a>
+    </div>
+  </div>
+
+  <div class="ras-layout">
+
+    <!-- ── Panel izquierdo: formulario de registro rápido ── -->
+    <div class="ras-form-panel panel-hud">
+      <h2 class="panel-title">Nuevo registro</h2>
+
+      <!-- Búsqueda de inmueble -->
+      <div class="form-group">
+        <label class="form-label">Buscar inmueble</label>
+        <div class="search-wrap">
+          <input
+            type="text"
+            class="input"
+            placeholder="Nomenclatura (ej: AP-101)"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            autocomplete="off"
+          />
+          @if (inmuebleSeleccionado()) {
+            <button type="button" class="search-clear" (click)="limpiarSeleccion()" title="Limpiar">✕</button>
+          }
+        </div>
+
+        <!-- Sugerencias -->
+        @if (searchLoading()) {
+          <div class="search-hint">Buscando...</div>
+        } @else if (sugerencias().length > 0 && !inmuebleSeleccionado()) {
+          <ul class="suggestions">
+            @for (inm of sugerencias(); track inm.id) {
+              <li class="suggestion-item" (click)="seleccionarInmueble(inm)">
+                <span class="sug-nomenclatura">{{ inm.nomenclatura }}</span>
+                <span class="sug-meta">{{ inm.tipo }} · {{ inm.coeficiente }}%</span>
+                @if (inm.propietario_nombre) {
+                  <span class="sug-owner">{{ inm.propietario_nombre }}</span>
+                }
+              </li>
+            }
+          </ul>
+        } @else if (searchQuery().length > 1 && sugerencias().length === 0 && !searchLoading() && !inmuebleSeleccionado()) {
+          <div class="search-hint">Sin resultados para "{{ searchQuery() }}"</div>
+        }
+
+        <!-- Inmueble seleccionado -->
+        @if (inmuebleSeleccionado(); as inm) {
+          <div class="selected-inmueble">
+            <span class="selected-badge">{{ inm.nomenclatura }}</span>
+            <span class="selected-meta">{{ inm.tipo }} · Coef. {{ inm.coeficiente }}%</span>
+            @if (inm.propietario_nombre) {
+              <span class="selected-meta">{{ inm.propietario_nombre }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Código de barras -->
+      <div class="form-group">
+        <label class="form-label">Código de barras <span class="form-required">*</span></label>
+        <input
+          type="number"
+          class="input"
+          placeholder="Número del código (ej: 42)"
+          [ngModel]="formCodigoBarras()"
+          (ngModelChange)="formCodigoBarras.set($event || null)"
+          min="1"
+          autocomplete="off"
+        />
+      </div>
+
+      @if (registerError()) {
+        <div class="alert alert-error">{{ registerError() }}</div>
+      }
+      @if (registerSuccess()) {
+        <div class="alert alert-success">{{ registerSuccess() }}</div>
+      }
+
+      <button
+        type="button"
+        class="btn btn-primary btn-full"
+        [disabled]="registering() || !inmuebleSeleccionado() || !formCodigoBarras()"
+        (click)="registrar()"
+      >
+        {{ registering() ? 'Registrando...' : 'Registrar asistencia' }}
+      </button>
+    </div>
+
+    <!-- ── Panel derecho: lista de inmuebles registrados ── -->
+    <div class="ras-list-panel">
+
+      <!-- Resumen -->
+      <div class="ras-summary panel-hud">
+        <div class="summary-item">
+          <span class="summary-label">Inmuebles presentes</span>
+          <span class="summary-value">{{ totalRegistrados() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Coeficiente acumulado</span>
+          <span class="summary-value">{{ totalCoeficiente() }}%</span>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-wrap panel-hud">
+        @if (loading()) {
+          <div class="table-loading">Cargando registros...</div>
+        } @else {
+          <table class="ras-table">
+            <thead>
+              <tr>
+                <th>Inmueble</th>
+                <th>Coeficiente</th>
+                <th>Código barras</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (asistente of asistentes(); track asistente.id) {
+                @for (inm of asistente.inmuebles; track inm.id) {
+                  <tr>
+                    <td class="cell-nomenclatura">{{ inm.nomenclatura }}</td>
+                    <td>{{ inm.coeficiente }}%</td>
+                    <td>{{ asistente.codigo_barras ?? '—' }}</td>
+                    <td class="cell-actions">
+                      @if (deleteConfirmId() === asistente.id) {
+                        <button type="button" class="btn-link btn-link-danger" (click)="doDelete(asistente.id)">Confirmar</button>
+                        <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
+                      } @else {
+                        <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(asistente.id)">Quitar</button>
+                      }
+                    </td>
+                  </tr>
+                }
+              } @empty {
+                <tr>
+                  <td colspan="4" class="empty-row">Aún no hay inmuebles registrados</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>

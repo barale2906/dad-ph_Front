@@ -18,37 +18,52 @@ export class ReunionDetailComponent implements OnInit {
   private readonly reporteService = inject(ReporteService);
 
   protected reunion = signal<Reunion | null>(null);
-  protected loading = true;
-  protected actionLoading = false;
+  protected loading = signal(true);
+  protected actionLoading = signal(false);
+  protected actionError = signal('');
 
   ngOnInit() {
     const id = +this.route.snapshot.paramMap.get('id')!;
     this.reunionService.getById(id).subscribe({
-      next: (r) => this.reunion.set(r),
-      error: () => (this.loading = false),
-      complete: () => (this.loading = false),
+      next: (r) => {
+        this.reunion.set(r);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
     });
   }
 
   protected iniciar() {
     const r = this.reunion();
     if (!r || r.estado !== 'programada') return;
-    this.actionLoading = true;
+    this.actionLoading.set(true);
+    this.actionError.set('');
     this.reunionService.iniciar(r.id).subscribe({
-      next: (updated) => this.reunion.set(updated),
-      error: () => {},
-      complete: () => (this.actionLoading = false),
+      next: (updated) => {
+        this.reunion.set(updated);
+        this.actionLoading.set(false);
+      },
+      error: (err) => {
+        this.actionLoading.set(false);
+        this.actionError.set(err?.error?.message ?? 'No se pudo iniciar la reunión.');
+      },
     });
   }
 
   protected cerrar() {
     const r = this.reunion();
     if (!r || r.estado !== 'en_curso') return;
-    this.actionLoading = true;
+    this.actionLoading.set(true);
+    this.actionError.set('');
     this.reunionService.cerrar(r.id).subscribe({
-      next: (updated) => this.reunion.set(updated),
-      error: () => {},
-      complete: () => (this.actionLoading = false),
+      next: (updated) => {
+        this.reunion.set(updated);
+        this.actionLoading.set(false);
+      },
+      error: (err) => {
+        this.actionLoading.set(false);
+        this.actionError.set(err?.error?.message ?? 'No se pudo cerrar la reunión.');
+      },
     });
   }
 

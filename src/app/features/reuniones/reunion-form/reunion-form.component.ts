@@ -27,10 +27,10 @@ export class ReunionFormComponent implements OnInit {
   protected zonasComunes = signal<ZonaComun[]>([]);
   protected isEdit = false;
   protected id = signal<number | null>(null);
-  protected loading = true;
-  protected saving = false;
-  protected errorMessage = '';
-  protected validationErrors: Record<string, string[]> = {};
+  protected loading = signal(true);
+  protected saving = signal(false);
+  protected errorMessage = signal('');
+  protected validationErrors = signal<Record<string, string[]>>({});
 
   protected tipos: { value: ReunionTipo; label: string }[] = [
     { value: 'ordinaria', label: 'Ordinaria' },
@@ -44,7 +44,8 @@ export class ReunionFormComponent implements OnInit {
   protected entes: { value: ReunionEnte; label: string }[] = [
     { value: 'ASAMBLEA', label: 'Asamblea' },
     { value: 'CONSEJO', label: 'Consejo' },
-    { value: 'JUNTA', label: 'Junta' },
+    { value: 'ADMINISTRADOR', label: 'Administrador' },
+    { value: 'CONTADOR', label: 'Contador' },
   ];
 
   protected form = this.fb.nonNullable.group({
@@ -76,12 +77,12 @@ export class ReunionFormComponent implements OnInit {
             ente: data.ente,
             zona_comun_ids: data.zona_comun_ids ?? [],
           });
+          this.loading.set(false);
         },
-        error: () => (this.loading = false),
-        complete: () => (this.loading = false),
+        error: () => this.loading.set(false),
       });
     } else {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
@@ -96,9 +97,9 @@ export class ReunionFormComponent implements OnInit {
   protected onSubmit() {
     if (this.form.invalid) return;
 
-    this.saving = true;
-    this.errorMessage = '';
-    this.validationErrors = {};
+    this.saving.set(true);
+    this.errorMessage.set('');
+    this.validationErrors.set({});
     const v = this.form.getRawValue();
 
     const payload = {
@@ -115,16 +116,18 @@ export class ReunionFormComponent implements OnInit {
       : this.reunionService.create(payload);
 
     obs.subscribe({
-      next: () => this.router.navigate(['/reuniones']),
+      next: () => {
+        this.saving.set(false);
+        this.router.navigate(['/reuniones']);
+      },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         if (err.status === 422 && err.error?.errors) {
-          this.validationErrors = err.error.errors;
+          this.validationErrors.set(err.error.errors);
         } else {
-          this.errorMessage = err?.error?.message ?? 'Error al guardar.';
+          this.errorMessage.set(err?.error?.message ?? 'Error al guardar.');
         }
       },
-      complete: () => (this.saving = false),
     });
   }
 }

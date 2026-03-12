@@ -38,7 +38,7 @@ export class PreguntaListComponent implements OnInit {
     const params: Record<string, string | number> = { reunion_id: this.reunionId };
     if (this.filterEstado()) params['estado'] = this.filterEstado();
     this.preguntaService.getAll(params).subscribe({
-      next: (list) => this.preguntas.set(list),
+      next: (res) => this.preguntas.set(res.data),
       error: () => {},
       complete: () => (this.loading = false),
     });

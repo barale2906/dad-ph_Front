@@ -6,36 +6,52 @@
       <div class="detail-header">
         <h1>Reunión {{ r.tipo }} - {{ r.ente }}</h1>
         <div class="detail-actions">
+
+          <!-- Siempre visibles -->
           <a [routerLink]="['/reuniones', r.id, 'orden-dia']" class="btn btn-outline">Orden del día</a>
-          <a [routerLink]="['/reuniones', r.id, 'preguntas']" class="btn btn-outline">Preguntas</a>
-          @if (r.estado === 'finalizada') {
-            <button type="button" class="btn btn-outline" (click)="descargarActa(r.id)">Descargar acta</button>
-            <a [routerLink]="['/reuniones', r.id, 'estadisticas']" class="btn btn-outline">Estadísticas</a>
-          }
           <a [routerLink]="['/reuniones', r.id, 'editar']" class="btn btn-outline">Editar</a>
+
+          <!-- Solo cuando está programada -->
           @if (r.estado === 'programada') {
             <button
               type="button"
               class="btn btn-primary"
-              [disabled]="actionLoading"
+              [disabled]="actionLoading()"
               (click)="iniciar()"
             >
-              Iniciar reunión
+              {{ actionLoading() ? 'Iniciando...' : 'Iniciar reunión' }}
             </button>
           }
+
+          <!-- Solo cuando está en curso -->
           @if (r.estado === 'en_curso') {
+            <a [routerLink]="['/reuniones', r.id, 'asistentes']" class="btn btn-primary">Asistencia</a>
+            <a [routerLink]="['/reuniones', r.id, 'preguntas']" class="btn btn-outline">Votaciones</a>
             <a [routerLink]="['/reuniones', r.id, 'en-vivo']" class="btn btn-primary">Vista en vivo</a>
             <button
               type="button"
               class="btn btn-warn"
-              [disabled]="actionLoading"
+              [disabled]="actionLoading()"
               (click)="cerrar()"
             >
-              Cerrar reunión
+              {{ actionLoading() ? 'Cerrando...' : 'Cerrar reunión' }}
             </button>
           }
+
+          <!-- Solo cuando está finalizada -->
+          @if (r.estado === 'finalizada') {
+            <a [routerLink]="['/reuniones', r.id, 'preguntas']" class="btn btn-outline">Votaciones</a>
+            <button type="button" class="btn btn-outline" (click)="descargarActa(r.id)">Descargar acta</button>
+            <a [routerLink]="['/reuniones', r.id, 'estadisticas']" class="btn btn-outline">Estadísticas</a>
+          }
+
         </div>
       </div>
+
+      @if (actionError()) {
+        <div class="alert alert-error">{{ actionError() }}</div>
+      }
+
       <dl class="detail-dl">
         <dt>Fecha</dt>
         <dd>{{ formatFecha(r.fecha) }}</dd>
@@ -51,7 +67,7 @@
 
       <app-convocatoria-section [reunionId]="r.id" />
     </div>
-  } @else if (loading) {
+  } @else if (loading()) {
     <div class="loading">Cargando...</div>
   }
 </div>

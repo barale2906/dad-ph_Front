@@ -1,17 +1,25 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  computed,
+  ElementRef,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { OrdenDiaService } from './services/orden-dia.service';
 import { ReunionService } from '../services/reunion.service';
-import type { OrdenDiaItem } from '../../../core/models/orden-dia.model';
+import type { OrdenDiaItem, CargaMasivaOrdenDiaResult } from '../../../core/models/orden-dia.model';
 import type { Reunion } from '../../../core/models/reunion.model';
 
 @Component({
   selector: 'app-orden-dia',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, DragDropModule, DecimalPipe],
+  imports: [RouterLink, ReactiveFormsModule, DragDropModule, DecimalPipe, TitleCasePipe],
   templateUrl: './orden-dia.component.html',
   styleUrl: './orden-dia.component.scss',
 })
@@ -21,6 +29,8 @@ export class OrdenDiaComponent implements OnInit {
   private readonly ordenDiaService = inject(OrdenDiaService);
   private readonly reunionService = inject(ReunionService);
 
+  protected readonly csvInput = viewChild<ElementRef<HTMLInputElement>>('csvInput');
+
   protected reunionId = 0;
   protected reunion = signal<Reunion | null>(null);
   protected items = signal<OrdenDiaItem[]>([]);
@@ -29,9 +39,12 @@ export class OrdenDiaComponent implements OnInit {
   protected editingId = signal<number | null>(null);
   protected saving = false;
   protected errorMessage = '';
+  protected csvImporting = false;
+  protected csvError = '';
+  protected csvResult = signal<CargaMasivaOrdenDiaResult | null>(null);
 
   protected form = this.fb.nonNullable.group({
-    titulo: ['', Validators.required],
+    titulo: ['', [Validators.required, Validators.maxLength(255)]],
     descripcion: [''],
     orden: [0],
   });
@@ -40,7 +53,11 @@ export class OrdenDiaComponent implements OnInit {
     const list = this.items();
     const total = list.length;
     const ejecutados = list.filter((i) => i.ejecutado).length;
-    return { ejecutados, total, porcentaje: total ? (ejecutados / total) * 100 : 0 };
+    return {
+      ejecutados,
+      total,
+      porcentaje: total ? Math.round((ejecutados / total) * 100) : 0,
+    };
   });
 
   ngOnInit() {
@@ -54,8 +71,8 @@ export class OrdenDiaComponent implements OnInit {
       next: (r) => this.reunion.set(r),
     });
     this.ordenDiaService.getByReunion(this.reunionId).subscribe({
-      next: (list: OrdenDiaItem[]) => this.items.set(list),
-      error: () => {},
+      next: (list) => this.items.set(list),
+      error: () => (this.loading = false),
       complete: () => (this.loading = false),
     });
   }
@@ -65,6 +82,7 @@ export class OrdenDiaComponent implements OnInit {
     if (!this.showForm) {
       this.editingId.set(null);
       this.form.reset();
+      this.errorMessage = '';
     }
   }
 
@@ -76,12 +94,14 @@ export class OrdenDiaComponent implements OnInit {
       descripcion: item.descripcion ?? '',
       orden: item.orden,
     });
+    this.errorMessage = '';
   }
 
   protected cancelEdit() {
     this.editingId.set(null);
     this.form.reset();
     this.showForm = false;
+    this.errorMessage = '';
   }
 
   protected onSubmit() {
@@ -94,13 +114,14 @@ export class OrdenDiaComponent implements OnInit {
     const obs = editId
       ? this.ordenDiaService.update(editId, {
           titulo: v.titulo,
-          descripcion: v.descripcion || undefined,
-          orden: v.orden,
+          descripcion: v.descripcion || null,
+          orden: v.orden || 1,
+          ejecutado: this.items().find((i) => i.id === editId)?.ejecutado ?? false,
         })
       : this.ordenDiaService.create(this.reunionId, {
           titulo: v.titulo,
           descripcion: v.descripcion || undefined,
-          orden: v.orden,
+          orden: v.orden || undefined,
         });
 
     obs.subscribe({
@@ -119,27 +140,97 @@ export class OrdenDiaComponent implements OnInit {
   protected drop(event: CdkDragDrop<OrdenDiaItem[]>) {
     const list = [...this.items()];
     moveItemInArray(list, event.previousIndex, event.currentIndex);
-    const payload = list.map((item, idx) => ({ id: item.id, orden: idx }));
+    this.items.set(list);
+    const payload = list.map((item, idx) => ({ id: item.id, orden: idx + 1 }));
     this.ordenDiaService.reordenar(this.reunionId, payload).subscribe({
-      next: (updated: OrdenDiaItem[]) => this.items.set(updated),
+      next: (updated) => this.items.set(updated),
       error: () => this.load(),
     });
   }
 
   protected toggleEjecutado(item: OrdenDiaItem) {
-    this.ordenDiaService.marcarEjecutado(item.id).subscribe({
-      next: (updated: OrdenDiaItem) => {
-        this.items.update((list) =>
-          list.map((i) => (i.id === item.id ? updated : i))
-        );
+    const nuevoEstado = !item.ejecutado;
+    this.ordenDiaService.marcarEjecutado(item.id, nuevoEstado).subscribe({
+      next: (updated) => {
+        this.items.update((list) => list.map((i) => (i.id === item.id ? updated : i)));
       },
     });
   }
 
   protected deleteItem(item: OrdenDiaItem) {
-    if (!confirm('¿Eliminar este ítem?')) return;
+    if (!confirm(`¿Eliminar el punto "${item.titulo}"?`)) return;
     this.ordenDiaService.delete(item.id).subscribe({
       next: () => this.load(),
     });
+  }
+
+  // ── CSV Import ──────────────────────────────────────────────────────────────
+
+  protected downloadTemplate() {
+    const rows = [
+      'titulo,descripcion,orden',
+      'Verificación de quórum,Conteo de asistentes y coeficientes presentes para confirmar quórum deliberatorio,1',
+      'Lectura y aprobación del orden del día,Presentación y votación del orden del día propuesto para la reunión,2',
+      'Lectura y aprobación del acta anterior,Revisión y aprobación del acta de la reunión anterior,3',
+      'Informe de administración,Presentación del informe de gestión del período por parte del administrador,4',
+      'Informe financiero y de cartera,Presentación de estados financieros y reporte de cartera de deudores,5',
+      'Aprobación de presupuesto,Análisis y votación del presupuesto para el siguiente período,6',
+      'Elección de consejo de administración,,7',
+      'Proposiciones y varios,Temas propuestos por los copropietarios,8',
+    ];
+    const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'orden_dia_ejemplo.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  protected triggerCsvInput() {
+    this.csvResult.set(null);
+    this.csvError = '';
+    this.csvInput()?.nativeElement.click();
+  }
+
+  protected onCsvSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (ext !== 'csv' && ext !== 'txt') {
+      this.csvError = 'Seleccione un archivo CSV o TXT.';
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.csvError = 'El archivo no puede superar 5 MB.';
+      input.value = '';
+      return;
+    }
+
+    this.csvImporting = true;
+    this.csvError = '';
+    this.csvResult.set(null);
+
+    this.ordenDiaService.cargaMasiva(this.reunionId, file).subscribe({
+      next: (res) => {
+        this.csvResult.set(res);
+        this.load();
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.csvImporting = false;
+        this.csvError = err?.error?.message ?? 'Error al procesar el archivo.';
+      },
+      complete: () => {
+        this.csvImporting = false;
+        input.value = '';
+      },
+    });
+  }
+
+  protected csvErrorEntries(errores: Record<string, string[]>): Array<{ fila: string; msgs: string[] }> {
+    return Object.entries(errores).map(([fila, msgs]) => ({ fila, msgs }));
   }
 }

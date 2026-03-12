@@ -24,14 +24,14 @@
         type="button"
         class="btn btn-primary"
         (click)="triggerFileInput()"
-        [disabled]="loading"
+        [disabled]="loading()"
       >
-        {{ loading ? 'Procesando...' : 'Seleccionar archivo CSV' }}
+        {{ loading() ? 'Procesando...' : 'Seleccionar archivo CSV' }}
       </button>
     </div>
 
-    @if (errorMessage) {
-      <div class="alert alert-error">{{ errorMessage }}</div>
+    @if (errorMessage()) {
+      <div class="alert alert-error">{{ errorMessage() }}</div>
     }
 
     @if (result(); as r) {
@@ -41,12 +41,15 @@
           <span class="stat stat-ok">Creados: {{ r.creados }}</span>
           <span class="stat stat-info">Actualizados: {{ r.actualizados }}</span>
         </div>
-        @if (r.errores.length > 0) {
+        @if (hasErrors(r.errores)) {
           <div class="result-errors">
             <h4>Errores por fila</h4>
             <ul>
-              @for (e of r.errores; track e.fila) {
-                <li>Fila {{ e.fila }}: {{ e.mensaje }}</li>
+              @for (entry of getErrorEntries(r.errores); track entry[0]) {
+                <li>
+                  <strong>Fila {{ entry[0] }}:</strong>
+                  {{ entry[1].join(' / ') }}
+                </li>
               }
             </ul>
           </div>

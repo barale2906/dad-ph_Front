@@ -1,0 +1,149 @@
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { AsistenteService } from '../services/asistente.service';
+import { InmuebleService } from '../../inmuebles/services/inmueble.service';
+import type { AsistenteReunion, AsistenteReunionCreatePayload } from '../../../core/models/asistente.model';
+import type { Inmueble } from '../../../core/models/inmueble.model';
+
+@Component({
+  selector: 'app-reunion-asistentes',
+  standalone: true,
+  imports: [RouterLink, FormsModule],
+  templateUrl: './reunion-asistentes.component.html',
+  styleUrl: './reunion-asistentes.component.scss',
+})
+export class ReunionAsistentesComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly asistenteService = inject(AsistenteService);
+  private readonly inmuebleService = inject(InmuebleService);
+
+  protected reunionId = 0;
+
+  // Lista de registrados
+  protected asistentes = signal<AsistenteReunion[]>([]);
+  protected loading = signal(true);
+  protected deleteConfirmId = signal<number | null>(null);
+
+  // Formulario de registro rápido
+  protected searchQuery = signal('');
+  protected sugerencias = signal<Inmueble[]>([]);
+  protected searchLoading = signal(false);
+  protected inmuebleSeleccionado = signal<Inmueble | null>(null);
+  protected formCodigoBarras = signal<number | null>(null);
+  protected registering = signal(false);
+  protected registerError = signal('');
+  protected registerSuccess = signal('');
+
+  // Resumen de coeficiente
+  protected totalCoeficiente = computed(() =>
+    this.asistentes()
+      .flatMap((a) => a.inmuebles)
+      .reduce((sum, i) => sum + (i.coeficiente ?? 0), 0)
+      .toFixed(4)
+  );
+
+  ngOnInit() {
+    this.reunionId = +this.route.snapshot.paramMap.get('id')!;
+    this.cargarAsistentes();
+  }
+
+  protected cargarAsistentes() {
+    this.loading.set(true);
+    this.asistenteService.getByReunion(this.reunionId, { per_page: 200 }).subscribe({
+      next: (res) => {
+        this.asistentes.set(res.data);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
+  protected onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.inmuebleSeleccionado.set(null);
+    const q = value.trim();
+    if (!q) {
+      this.sugerencias.set([]);
+      return;
+    }
+    this.searchLoading.set(true);
+    this.inmuebleService.getAll({ nomenclatura: q, per_page: 10, activo: true }).subscribe({
+      next: (res) => {
+        this.sugerencias.set(res.data);
+        this.searchLoading.set(false);
+      },
+      error: () => this.searchLoading.set(false),
+    });
+  }
+
+  protected seleccionarInmueble(inmueble: Inmueble) {
+    this.inmuebleSeleccionado.set(inmueble);
+    this.searchQuery.set(inmueble.nomenclatura);
+    this.sugerencias.set([]);
+  }
+
+  protected limpiarSeleccion() {
+    this.inmuebleSeleccionado.set(null);
+    this.searchQuery.set('');
+    this.sugerencias.set([]);
+  }
+
+  protected registrar() {
+    const inmueble = this.inmuebleSeleccionado();
+    if (!inmueble) {
+      this.registerError.set('Seleccione un inmueble de la lista.');
+      return;
+    }
+    const codBarras = this.formCodigoBarras();
+    if (!codBarras || codBarras < 1) {
+      this.registerError.set('Ingrese el código de barras (número mayor a 0).');
+      return;
+    }
+
+    this.registering.set(true);
+    this.registerError.set('');
+    this.registerSuccess.set('');
+
+    const payload: AsistenteReunionCreatePayload = {
+      codigo_barras: codBarras,
+      inmuebles: [{ inmueble_id: inmueble.id }],
+    };
+
+    this.asistenteService.createForReunionWithCheckIn(this.reunionId, payload).subscribe({
+      next: () => {
+        this.registerSuccess.set(`✓ ${inmueble.nomenclatura} registrado correctamente.`);
+        this.registering.set(false);
+        this.limpiarSeleccion();
+        this.formCodigoBarras.set(null);
+        this.cargarAsistentes();
+      },
+      error: (err) => {
+        this.registering.set(false);
+        this.registerError.set(err?.error?.message ?? 'Error al registrar.');
+      },
+    });
+  }
+
+  protected confirmDelete(id: number) {
+    this.deleteConfirmId.set(id);
+  }
+
+  protected cancelDelete() {
+    this.deleteConfirmId.set(null);
+  }
+
+  protected doDelete(id: number) {
+    this.asistenteService.deleteFromReunion(this.reunionId, id).subscribe({
+      next: () => {
+        this.deleteConfirmId.set(null);
+        this.cargarAsistentes();
+      },
+      error: () => this.deleteConfirmId.set(null),
+    });
+  }
+
+  protected totalRegistrados = computed(() =>
+    this.asistentes().flatMap((a) => a.inmuebles).length
+  );
+}

@@ -10,7 +10,13 @@
   @if (coeficientesStatus(); as cs) {
     <div class="coef-panel panel-hud" [class]="getEstadoClass(cs.estado)">
       <span class="coef-panel__label">Coeficientes:</span>
-      <span class="coef-panel__value">{{ cs.suma }}% / {{ cs.total }}%</span>
+      <span class="coef-panel__value">{{ cs.total_coeficientes }}% / 100%</span>
+      @if (cs.faltante > 0) {
+        <span class="coef-panel__detalle">Faltante: {{ cs.faltante }}%</span>
+      }
+      @if (cs.exceso > 0) {
+        <span class="coef-panel__detalle">Exceso: {{ cs.exceso }}%</span>
+      }
       <span class="coef-panel__estado">{{ cs.estado }}</span>
     </div>
   }
@@ -45,7 +51,7 @@
   </div>
 
   <div class="table-wrap panel-hud">
-    @if (loading) {
+    @if (loading()) {
       <div class="table-loading">Cargando...</div>
     } @else {
       <table class="inmueble-table">

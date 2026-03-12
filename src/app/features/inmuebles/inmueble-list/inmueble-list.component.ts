@@ -17,12 +17,13 @@ export class InmuebleListComponent implements OnInit {
 
   protected inmuebles = signal<Inmueble[]>([]);
   protected meta = signal<PaginatedResponse<Inmueble>['meta'] | null>(null);
-  protected loading = true;
+  protected loading = signal(true);
   protected deleteConfirmId = signal<number | null>(null);
   protected coeficientesStatus = signal<{
     estado: string;
-    suma: number;
-    total: number;
+    total_coeficientes: number;
+    faltante: number;
+    exceso: number;
   } | null>(null);
 
   protected filters = signal({
@@ -43,7 +44,7 @@ export class InmuebleListComponent implements OnInit {
   }
 
   protected load() {
-    this.loading = true;
+    this.loading.set(true);
     const f = this.filters();
     const params: Record<string, string | number | boolean> = {
       page: f.pagina,
@@ -57,9 +58,9 @@ export class InmuebleListComponent implements OnInit {
       next: (res) => {
         this.inmuebles.set(res.data);
         this.meta.set(res.meta);
+        this.loading.set(false);
       },
-      error: () => {},
-      complete: () => (this.loading = false),
+      error: () => this.loading.set(false),
     });
   }
 
@@ -68,8 +69,9 @@ export class InmuebleListComponent implements OnInit {
       next: (res) => {
         this.coeficientesStatus.set({
           estado: res.estado,
-          suma: res.suma,
-          total: res.total,
+          total_coeficientes: res.total_coeficientes,
+          faltante: res.faltante,
+          exceso: res.exceso,
         });
       },
       error: () => {},

@@ -107,7 +107,7 @@ export class EnVivoComponent implements OnInit, OnDestroy {
       error: () => {},
     });
     this.preguntaService.getAll({ reunion_id: this.reunionId }).subscribe({
-      next: (list) => this.preguntas.set(list),
+      next: (res) => this.preguntas.set(res.data),
       error: () => {},
     });
     this.timerService.getAll({ reunion_id: this.reunionId }).subscribe({

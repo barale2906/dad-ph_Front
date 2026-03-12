@@ -2,45 +2,114 @@
   <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a reunión</a>
 
   @if (reunion(); as r) {
-    <h1 class="page-title">Orden del día - {{ r.tipo }} {{ r.ente }}</h1>
+    <h1 class="page-title">Orden del día — {{ r.tipo | titlecase }} {{ r.ente }}</h1>
   }
 
+  <!-- Barra de progreso -->
   <div class="avance-panel panel-hud">
-    <span class="avance-label">Avance:</span>
-    <span class="avance-value">{{ avance().ejecutados }} de {{ avance().total }} ítems</span>
-    <span class="avance-pct">({{ avance().porcentaje | number:'1.0-0' }}%)</span>
+    <div class="avance-header">
+      <span class="avance-label">Progreso de ejecución</span>
+      <span class="avance-counts">
+        <span class="avance-value">{{ avance().ejecutados }}</span>
+        <span class="avance-sep">/</span>
+        <span class="avance-total">{{ avance().total }}</span>
+        <span class="avance-pct">{{ avance().porcentaje | number:'1.0-0' }}%</span>
+      </span>
+    </div>
+    <div class="progress-track">
+      <div
+        class="progress-fill"
+        [style.width.%]="avance().porcentaje"
+        [class.complete]="avance().porcentaje === 100"
+      ></div>
+    </div>
   </div>
 
   @if (loading) {
     <div class="loading">Cargando...</div>
   } @else {
-    <div class="actions">
+    <!-- Acciones principales -->
+    <div class="toolbar">
       <button type="button" class="btn btn-primary" (click)="toggleForm()">
-        {{ showForm ? 'Cancelar' : 'Nuevo ítem' }}
+        {{ showForm && editingId() === null ? 'Cancelar' : '+ Nuevo ítem' }}
       </button>
+      <button
+        type="button"
+        class="btn btn-outline"
+        [disabled]="csvImporting"
+        (click)="triggerCsvInput()"
+      >
+        {{ csvImporting ? 'Cargando...' : 'Importar CSV' }}
+      </button>
+      <button type="button" class="btn btn-ghost" (click)="downloadTemplate()">
+        Descargar plantilla
+      </button>
+      <input
+        #csvInput
+        type="file"
+        accept=".csv,.txt"
+        class="csv-hidden"
+        (change)="onCsvSelected($event)"
+      />
     </div>
 
+    @if (csvError) {
+      <div class="alert alert-error">{{ csvError }}</div>
+    }
+
+    <!-- Resultado de la carga masiva -->
+    @if (csvResult(); as res) {
+      <div class="result-panel panel-hud">
+        <h3 class="result-title">Resultado de la importación</h3>
+        <div class="result-stats">
+          <span class="stat stat-ok">
+            <span class="stat-num">{{ res.creados }}</span> creado{{ res.creados !== 1 ? 's' : '' }}
+          </span>
+          @if (csvErrorEntries(res.errores).length > 0) {
+            <span class="stat stat-err">
+              <span class="stat-num">{{ csvErrorEntries(res.errores).length }}</span>
+              fila{{ csvErrorEntries(res.errores).length !== 1 ? 's' : '' }} con errores
+            </span>
+          }
+        </div>
+        @if (csvErrorEntries(res.errores).length > 0) {
+          <div class="result-errors">
+            <h4>Errores por fila</h4>
+            <ul>
+              @for (e of csvErrorEntries(res.errores); track e.fila) {
+                <li>
+                  <span class="err-fila">Fila {{ e.fila }}</span>
+                  <span class="err-msgs">{{ e.msgs.join(' · ') }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Formulario de creación / edición -->
     @if (showForm) {
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+        <h3 class="form-title">{{ editingId() !== null ? 'Editar ítem' : 'Nuevo ítem' }}</h3>
         @if (errorMessage) {
           <div class="alert alert-error">{{ errorMessage }}</div>
         }
         <div class="form-group">
-          <label>Título</label>
-          <input formControlName="titulo" class="input" />
+          <label for="titulo">Título <span class="required">*</span></label>
+          <input id="titulo" formControlName="titulo" class="input" maxlength="255" />
         </div>
         <div class="form-group">
-          <label>Descripción</label>
-          <textarea formControlName="descripcion" class="input" rows="2"></textarea>
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" formControlName="descripcion" class="input" rows="2"></textarea>
         </div>
-        <div class="form-group">
-          <label>Orden</label>
-          <input formControlName="orden" type="number" min="0" class="input" />
+        <div class="form-group form-group-sm">
+          <label for="orden">Posición</label>
+          <input id="orden" formControlName="orden" type="number" min="1" class="input" />
+          <span class="form-hint">Déjalo en 0 para agregar al final</span>
         </div>
         <div class="form-actions">
-          <button type="button" class="btn btn-outline" (click)="cancelEdit()">
-            Cancelar
-          </button>
+          <button type="button" class="btn btn-outline" (click)="cancelEdit()">Cancelar</button>
           <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
             {{ saving ? 'Guardando...' : 'Guardar' }}
           </button>
@@ -48,34 +117,75 @@
       </form>
     }
 
-    <div class="items-list panel-hud" cdkDropList (cdkDropListDropped)="drop($event)">
+    <!-- Lista con drag & drop -->
+    <div
+      class="items-list panel-hud"
+      cdkDropList
+      [cdkDropListData]="items()"
+      (cdkDropListDropped)="drop($event)"
+    >
       @for (item of items(); track item.id; let i = $index) {
         <div
           class="orden-item"
           [class.ejecutado]="item.ejecutado"
           cdkDrag
+          cdkDragLockAxis="y"
+          [cdkDragData]="item"
         >
-          <span class="drag-handle" cdkDragHandle>⋮⋮</span>
-          <label class="item-checkbox">
+          <!-- Drag handle -->
+          <span class="drag-handle" cdkDragHandle title="Arrastrar para reordenar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+              <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+              <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+            </svg>
+          </span>
+
+          <!-- Número de orden -->
+          <span class="item-num">{{ i + 1 }}</span>
+
+          <!-- Checkbox de ejecución -->
+          <label class="item-checkbox" [title]="item.ejecutado ? 'Marcar como pendiente' : 'Marcar como ejecutado'">
             <input
               type="checkbox"
               [checked]="item.ejecutado"
               (change)="toggleEjecutado(item)"
             />
-            <span class="item-titulo">{{ item.titulo }}</span>
           </label>
-          @if (item.descripcion) {
-            <p class="item-desc">{{ item.descripcion }}</p>
-          }
+
+          <!-- Contenido -->
+          <div class="item-body">
+            <span class="item-titulo">{{ item.titulo }}</span>
+            @if (item.descripcion) {
+              <p class="item-desc">{{ item.descripcion }}</p>
+            }
+          </div>
+
+          <!-- Estado badge -->
+          <span class="item-badge" [class.badge-done]="item.ejecutado">
+            {{ item.ejecutado ? 'Ejecutado' : 'Pendiente' }}
+          </span>
+
+          <!-- Acciones -->
           <div class="item-actions">
-            <button type="button" class="btn-link" (click)="edit(item)">Editar</button>
-            <button type="button" class="btn-link btn-link-danger" (click)="deleteItem(item)">
-              Eliminar
+            <button type="button" class="btn-icon" title="Editar" (click)="edit(item)">
+              ✏️
+            </button>
+            <button type="button" class="btn-icon btn-icon-danger" title="Eliminar" (click)="deleteItem(item)">
+              🗑️
             </button>
           </div>
+
+          <!-- Placeholder de drag -->
+          <ng-template cdkDragPlaceholder>
+            <div class="drag-placeholder"></div>
+          </ng-template>
         </div>
       } @empty {
-        <div class="empty-state">No hay ítems en el orden del día</div>
+        <div class="empty-state">
+          <p>No hay ítems en el orden del día.</p>
+          <p class="empty-hint">Agrega ítems manualmente o importa un CSV con columnas <code>titulo</code> y <code>descripcion</code>.</p>
+        </div>
       }
     </div>
   }

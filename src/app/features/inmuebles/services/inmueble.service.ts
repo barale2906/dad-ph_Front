@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { ApiService } from '../../../core/http/api.service';
 import type { PaginatedResponse } from '../../../core/models/paginated-response.model';
 import type {
@@ -43,10 +44,14 @@ export class InmuebleService {
   cargaMasiva(file: File) {
     const formData = new FormData();
     formData.append('archivo', file);
-    return this.api.post<CargaMasivaResult>('/inmuebles/carga-masiva', formData);
+    return this.api
+      .post<{ message: string; data: CargaMasivaResult }>('/inmuebles/carga-masiva', formData)
+      .pipe(map((res) => res.data));
   }
 
   validarCoeficientes() {
-    return this.api.get<CoeficientesValidacion>('/inmuebles/validar-coeficientes');
+    return this.api
+      .get<{ data: CoeficientesValidacion }>('/inmuebles/validar-coeficientes')
+      .pipe(map((res) => res.data));
   }
 }

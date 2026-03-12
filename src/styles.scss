@@ -52,6 +52,15 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    font-size: 15px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
 }
 
 body {
@@ -61,6 +70,7 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 /* === Utilidades de glow === */
@@ -210,5 +220,47 @@ textarea.input {
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+/* === Utilidades responsive === */
+.form-actions {
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+/* Tablas responsive */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ocultar/mostrar por breakpoint */
+.hide-mobile {
+  @media (max-width: 640px) {
+    display: none !important;
+  }
+}
+
+.hide-tablet {
+  @media (max-width: 992px) {
+    display: none !important;
+  }
+}
+
+.show-mobile-only {
+  display: none !important;
+
+  @media (max-width: 640px) {
+    display: block !important;
   }
 }

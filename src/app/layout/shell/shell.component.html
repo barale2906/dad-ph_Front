@@ -1,9 +1,24 @@
-<div class="shell">
+<div class="shell" [class.sidebar-is-open]="sidebarOpen()">
+
   <header class="header panel-hud">
-    <div class="header__brand">
-      <span class="header__logo">UniPH</span>
-      <span class="header__tagline">PROTOCOL ONLINE</span>
+    <div class="header__left">
+      <button
+        type="button"
+        class="btn-hamburger"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="sidebarOpen()"
+        aria-label="Menú de navegación"
+      >
+        <span class="hamburger__line" [class.hamburger__line--open]="sidebarOpen()"></span>
+        <span class="hamburger__line" [class.hamburger__line--open]="sidebarOpen()"></span>
+        <span class="hamburger__line" [class.hamburger__line--open]="sidebarOpen()"></span>
+      </button>
+      <div class="header__brand">
+        <span class="header__logo">UniPH</span>
+        <span class="header__tagline">PROTOCOL ONLINE</span>
+      </div>
     </div>
+
     <nav class="header__nav">
       @if (user(); as u) {
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
@@ -17,11 +32,31 @@
     </nav>
   </header>
 
-  <aside class="sidebar panel-hud" aria-label="Navegación principal">
+  <div
+    class="sidebar-overlay"
+    [class.sidebar-overlay--visible]="sidebarOpen()"
+    (click)="closeSidebar()"
+    aria-hidden="true"
+  ></div>
+
+  <aside
+    class="sidebar panel-hud"
+    [class.sidebar--open]="sidebarOpen()"
+    aria-label="Navegación principal"
+  >
+    <button
+      type="button"
+      class="sidebar__close"
+      (click)="closeSidebar()"
+      aria-label="Cerrar menú"
+    >
+      ✕
+    </button>
     <app-sidebar-menu />
   </aside>
 
   <main class="content" role="main" aria-label="Contenido principal">
     <router-outlet />
   </main>
+
 </div>
