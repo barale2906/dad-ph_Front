@@ -457,6 +457,79 @@
   padding: 1.5rem !important;
 }
 
+/* ─── Bar Charts ─────────────────────────────────────────────────────────── */
+.bar-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.bar-chart-card {
+  padding: 1.25rem;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bar-label {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-track {
+  height: 26px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 4px;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar-meta {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--neon-blue);
+  white-space: nowrap;
+  min-width: 110px;
+  text-align: right;
+}
+
+.bar-pct {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.bar-total {
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: right;
+
+  strong { color: var(--neon-blue); font-family: var(--font-mono); }
+}
+
 /* Gráficos de torta */
 .charts-grid {
   display: grid;
@@ -539,4 +612,190 @@
   text-align: center;
   color: var(--text-secondary);
   font-style: italic;
+}
+
+/* ─── Detalle de votos por inmueble ──────────────────────────────────────── */
+.ivoto-section {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.ivoto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .chart-title { margin: 0; }
+}
+
+.ivoto-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Stats */
+.ivoto-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.istat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  min-width: 80px;
+}
+
+.istat-val {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.istat-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.25rem;
+}
+
+.istat-total    .istat-val { color: var(--text-primary); }
+.istat-votaron  .istat-val { color: var(--neon-green); }
+.istat-pendientes .istat-val { color: var(--text-secondary); }
+.istat-coef     .istat-val { color: var(--neon-blue); }
+
+/* Filtros */
+.ivoto-filters {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ivoto-filter-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+
+  &:hover { color: var(--text-primary); }
+
+  &.active {
+    color: var(--neon-green);
+    border-bottom-color: var(--neon-green);
+  }
+}
+
+.ivoto-filter-si.active  { color: var(--neon-green); border-bottom-color: var(--neon-green); }
+.ivoto-filter-no.active  { color: var(--text-secondary); border-bottom-color: var(--text-secondary); }
+
+/* Tabla */
+.ivoto-table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+}
+
+.ivoto-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+
+  th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-panel, #0d1117);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  td {
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.row-votado  td { background: rgba(0, 255, 136, 0.03); }
+.row-pendiente td { opacity: 0.65; }
+
+.nom-cell {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.coef-cell {
+  font-family: var(--font-mono);
+  color: var(--neon-blue);
+}
+
+.text-center { text-align: center; }
+
+.ivoto-badge {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ivoto-si { background: rgba(0, 255, 136, 0.18); color: var(--neon-green); }
+.ivoto-no { background: rgba(255, 255, 255, 0.06); color: var(--text-secondary); }
+
+.opcion-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: transparent;
+}
+
+.hora-cell {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sin-voto-text {
+  color: var(--text-secondary);
+  opacity: 0.5;
 }

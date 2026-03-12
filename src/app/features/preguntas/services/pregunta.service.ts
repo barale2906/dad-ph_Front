@@ -7,7 +7,11 @@ import type {
   PreguntaUpdatePayload,
 } from '../../../core/models/pregunta.model';
 import type { PaginatedResponse } from '../../../core/models/paginated-response.model';
-import type { ResultadosPregunta } from '../../../core/models/resultados.model';
+import type {
+  ResultadosPregunta,
+  ResultadosApiResponse,
+  InmueblesVotosResponse,
+} from '../../../core/models/resultados.model';
 
 export type PreguntaListParams = {
   reunion_id?: number;
@@ -63,7 +67,38 @@ export class PreguntaService {
 
   getResultados(preguntaId: number) {
     return this.api
-      .get<{ data: ResultadosPregunta }>(`/preguntas/${preguntaId}/resultados`)
+      .get<{ data: ResultadosApiResponse }>(`/preguntas/${preguntaId}/resultados`)
+      .pipe(
+        map((r) => {
+          const raw = r.data;
+          const items = raw.resultados ?? [];
+          const totalVotos = items.reduce((s, o) => s + o.votos, 0);
+          const totalCoef  = items.reduce((s, o) => s + o.coeficiente, 0);
+
+          return {
+            pregunta_id: raw.pregunta_id,
+            pregunta: '',
+            total_votos:      totalVotos,
+            total_unidades:   totalVotos,
+            total_coeficiente: totalCoef,
+            opciones: items.map((o) => ({
+              opcion_id: o.opcion_id,
+              texto:     o.texto,
+              votos:     o.votos,
+              unidades:  o.votos,
+              porcentaje:            totalVotos > 0 ? (o.votos       / totalVotos) * 100 : 0,
+              porcentaje_unidades:   totalVotos > 0 ? (o.votos       / totalVotos) * 100 : 0,
+              coeficiente:           o.coeficiente,
+              porcentaje_coeficiente: totalCoef  > 0 ? (o.coeficiente / totalCoef)  * 100 : 0,
+            })),
+          } as ResultadosPregunta;
+        })
+      );
+  }
+
+  getInmueblesVotos(preguntaId: number) {
+    return this.api
+      .get<{ data: InmueblesVotosResponse }>(`/preguntas/${preguntaId}/inmuebles-votos`)
       .pipe(map((r) => r.data));
   }
 }

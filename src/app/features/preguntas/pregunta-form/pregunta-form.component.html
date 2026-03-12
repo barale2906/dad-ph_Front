@@ -342,6 +342,75 @@
           </table>
         </div>
 
+        <!-- Gráficas de barras -->
+        <div class="bar-charts-grid">
+
+          <!-- Barras: Unidades -->
+          <div class="bar-chart-card panel-hud">
+            <h4 class="chart-title">Unidades por Opción</h4>
+            @if (barUnidades().length > 0) {
+              <div class="bar-chart">
+                @for (bar of barUnidades(); track $index) {
+                  <div class="bar-row">
+                    <span class="bar-label" [title]="bar.label">{{ bar.label }}</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill"
+                        [style.width.%]="bar.percentage"
+                        [style.background]="bar.color"
+                        [style.boxShadow]="'0 0 8px ' + bar.color + '88'"
+                      ></div>
+                    </div>
+                    <span class="bar-meta">
+                      {{ bar.value | number }}
+                      <span class="bar-pct">({{ bar.percentage | number:'1.1-1' }}%)</span>
+                    </span>
+                  </div>
+                }
+              </div>
+              <div class="bar-total">
+                Total: <strong>{{ (r.total_unidades ?? r.total_votos) | number }}</strong> unidades
+              </div>
+            } @else {
+              <p class="chart-empty">Sin datos suficientes.</p>
+            }
+          </div>
+
+          <!-- Barras: Coeficiente (solo si hay datos) -->
+          @if (hasCoeficienteData()) {
+            <div class="bar-chart-card panel-hud">
+              <h4 class="chart-title">Coeficiente por Opción</h4>
+              @if (barCoeficiente().length > 0) {
+                <div class="bar-chart">
+                  @for (bar of barCoeficiente(); track $index) {
+                    <div class="bar-row">
+                      <span class="bar-label" [title]="bar.label">{{ bar.label }}</span>
+                      <div class="bar-track">
+                        <div
+                          class="bar-fill"
+                          [style.width.%]="bar.percentage"
+                          [style.background]="bar.color"
+                          [style.boxShadow]="'0 0 8px ' + bar.color + '88'"
+                        ></div>
+                      </div>
+                      <span class="bar-meta">
+                        {{ bar.value | number:'1.4-4' }}
+                        <span class="bar-pct">({{ bar.percentage | number:'1.1-1' }}%)</span>
+                      </span>
+                    </div>
+                  }
+                </div>
+                <div class="bar-total">
+                  Total: <strong>{{ (r.total_coeficiente ?? 0) | number:'1.4-4' }}</strong> coeficiente
+                </div>
+              } @else {
+                <p class="chart-empty">Sin datos suficientes.</p>
+              }
+            </div>
+          }
+
+        </div>
+
         <!-- Gráficos de torta -->
         <div class="charts-grid">
 
@@ -401,6 +470,131 @@
             </div>
           }
 
+        </div>
+
+        <!-- ── Detalle de votos por inmueble ──────────────────────────────── -->
+        <div class="ivoto-section panel-hud">
+
+          <!-- Cabecera -->
+          <div class="ivoto-header">
+            <h4 class="chart-title">Detalle por Inmueble</h4>
+            <div class="ivoto-header-actions">
+              <button
+                class="btn btn-outline btn-sm"
+                (click)="ocultarRespuesta.set(!ocultarRespuesta())"
+              >
+                {{ ocultarRespuesta() ? '👁 Mostrar opción' : '🙈 Ocultar opción' }}
+              </button>
+            </div>
+          </div>
+
+          @if (loadingInmuebles() && !inmueblesVotos()) {
+            <div class="loading-msg">Cargando detalle...</div>
+          } @else if (inmueblesVotos(); as iv) {
+
+            <!-- Resumen de participación -->
+            <div class="ivoto-stats">
+              <div class="istat-card istat-total">
+                <span class="istat-val">{{ iv.total_inmuebles }}</span>
+                <span class="istat-label">Total</span>
+              </div>
+              <div class="istat-card istat-votaron">
+                <span class="istat-val">{{ iv.inmuebles_votaron }}</span>
+                <span class="istat-label">Votaron</span>
+              </div>
+              <div class="istat-card istat-pendientes">
+                <span class="istat-val">{{ iv.inmuebles_pendientes }}</span>
+                <span class="istat-label">Pendientes</span>
+              </div>
+              <div class="istat-card istat-coef">
+                <span class="istat-val">{{ pctVotantes() | number:'1.1-1' }}%</span>
+                <span class="istat-label">Participación</span>
+              </div>
+              @if (hasCoeficienteData()) {
+                <div class="istat-card istat-coef">
+                  <span class="istat-val">{{ iv.coeficiente_votante | number:'1.2-2' }}</span>
+                  <span class="istat-label">Coef. votante</span>
+                </div>
+              }
+            </div>
+
+            <!-- Filtro -->
+            <div class="ivoto-filters">
+              <button
+                class="ivoto-filter-btn"
+                [class.active]="filtroVotos() === 'todos'"
+                (click)="filtroVotos.set('todos')"
+              >Todos ({{ iv.total_inmuebles }})</button>
+              <button
+                class="ivoto-filter-btn ivoto-filter-si"
+                [class.active]="filtroVotos() === 'votaron'"
+                (click)="filtroVotos.set('votaron')"
+              >Votaron ({{ iv.inmuebles_votaron }})</button>
+              <button
+                class="ivoto-filter-btn ivoto-filter-no"
+                [class.active]="filtroVotos() === 'pendientes'"
+                (click)="filtroVotos.set('pendientes')"
+              >Pendientes ({{ iv.inmuebles_pendientes }})</button>
+            </div>
+
+            <!-- Tabla -->
+            <div class="ivoto-table-wrap">
+              <table class="ivoto-table">
+                <thead>
+                  <tr>
+                    <th>Inmueble</th>
+                    <th class="text-right">Coeficiente</th>
+                    <th class="text-center">Votó</th>
+                    @if (!ocultarRespuesta()) {
+                      <th>Opción elegida</th>
+                      <th class="text-right">Hora</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of inmueblesFiltrados(); track item.inmueble_id) {
+                    <tr [class.row-votado]="item.votado" [class.row-pendiente]="!item.votado">
+                      <td class="nom-cell">{{ item.nomenclatura }}</td>
+                      <td class="text-right coef-cell">{{ item.coeficiente | number:'1.4-4' }}</td>
+                      <td class="text-center">
+                        @if (item.votado) {
+                          <span class="ivoto-badge ivoto-si">✓</span>
+                        } @else {
+                          <span class="ivoto-badge ivoto-no">—</span>
+                        }
+                      </td>
+                      @if (!ocultarRespuesta()) {
+                        <td>
+                          @if (item.opcion_texto) {
+                            <span
+                              class="opcion-tag"
+                              [style.borderColor]="opcionColorMap().get(item.opcion_id!) ?? '#888'"
+                              [style.color]="opcionColorMap().get(item.opcion_id!) ?? '#888'"
+                            >{{ item.opcion_texto }}</span>
+                          } @else {
+                            <span class="sin-voto-text">—</span>
+                          }
+                        </td>
+                        <td class="text-right hora-cell">
+                          @if (item.votado_at) {
+                            {{ item.votado_at | date:'HH:mm:ss' }}
+                          } @else {
+                            <span class="sin-voto-text">—</span>
+                          }
+                        </td>
+                      }
+                    </tr>
+                  }
+                  @empty {
+                    <tr>
+                      <td colspan="5" class="empty-row">Sin registros para este filtro.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+          }
         </div>
 
       } @else {

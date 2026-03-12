@@ -1,3 +1,40 @@
+export interface InmuebleVotoItem {
+  inmueble_id: number;
+  nomenclatura: string;
+  coeficiente: number;
+  votado: boolean;
+  opcion_id: number | null;
+  opcion_texto: string | null;
+  votado_at: string | null;
+}
+
+export interface InmueblesVotosResponse {
+  pregunta_id: number;
+  tipo: string;
+  estado: string;
+  total_inmuebles: number;
+  inmuebles_votaron: number;
+  inmuebles_pendientes: number;
+  coeficiente_total: number;
+  coeficiente_votante: number;
+  inmuebles: InmuebleVotoItem[];
+}
+
+/** Forma raw que devuelve el endpoint GET /preguntas/{id}/resultados */
+export interface ResultadosApiItem {
+  opcion_id: number;
+  texto: string;
+  votos: number;
+  coeficiente: number;
+}
+
+export interface ResultadosApiResponse {
+  pregunta_id: number;
+  tipo: string;
+  estado: string;
+  resultados: ResultadosApiItem[];
+}
+
 export interface ResultadoOpcion {
   opcion_id: number;
   texto: string;

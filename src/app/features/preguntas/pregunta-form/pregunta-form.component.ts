@@ -17,9 +17,20 @@ import { OpcionService } from '../services/opcion.service';
 import { VotoService } from '../services/voto.service';
 import { AsistenteService } from '../../asistentes/services/asistente.service';
 import type { Opcion, Pregunta } from '../../../core/models/pregunta.model';
-import type { ResultadosPregunta } from '../../../core/models/resultados.model';
+import type {
+  ResultadosPregunta,
+  InmueblesVotosResponse,
+  InmuebleVotoItem,
+} from '../../../core/models/resultados.model';
 
 type Tab = 'config' | 'votar' | 'resultados';
+
+interface BarItem {
+  label: string;
+  value: number;
+  percentage: number;
+  color: string;
+}
 
 interface PieSlice {
   path: string;
@@ -75,6 +86,12 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
   protected loadingResultados = signal(false);
   protected lastRefresh = signal<Date | null>(null);
 
+  // Detalle de votos por inmueble
+  protected inmueblesVotos = signal<InmueblesVotosResponse | null>(null);
+  protected loadingInmuebles = signal(false);
+  protected ocultarRespuesta = signal(false);
+  protected filtroVotos = signal<'todos' | 'votaron' | 'pendientes'>('todos');
+
   // Votación por código de barras
   protected selectedOpcionId = signal<number | null>(null);
   protected barcodeValue = signal('');
@@ -114,6 +131,54 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
       (o) => o.coeficiente !== undefined && o.coeficiente > 0
     )
   );
+
+  protected barUnidades = computed<BarItem[]>(() => {
+    const r = this.resultados();
+    if (!r?.opciones.length) return [];
+    return r.opciones.map((o, i) => ({
+      label: o.texto,
+      value: o.unidades ?? o.votos,
+      percentage: o.porcentaje_unidades ?? o.porcentaje,
+      color: PIE_COLORS[i % PIE_COLORS.length],
+    }));
+  });
+
+  protected barCoeficiente = computed<BarItem[]>(() => {
+    const r = this.resultados();
+    if (!r?.opciones.length) return [];
+    const values = r.opciones.map((o) => o.coeficiente ?? 0);
+    if (values.every((v) => v === 0)) return [];
+    return r.opciones.map((o, i) => ({
+      label: o.texto,
+      value: o.coeficiente ?? 0,
+      percentage: o.porcentaje_coeficiente ?? 0,
+      color: PIE_COLORS[i % PIE_COLORS.length],
+    }));
+  });
+
+  protected opcionColorMap = computed(() => {
+    const map = new Map<number, string>();
+    (this.resultados()?.opciones ?? []).forEach((o, i) => {
+      map.set(o.opcion_id, PIE_COLORS[i % PIE_COLORS.length]);
+    });
+    return map;
+  });
+
+  protected inmueblesFiltrados = computed<InmuebleVotoItem[]>(() => {
+    const data = this.inmueblesVotos();
+    if (!data) return [];
+    switch (this.filtroVotos()) {
+      case 'votaron':   return data.inmuebles.filter((i) => i.votado);
+      case 'pendientes': return data.inmuebles.filter((i) => !i.votado);
+      default:          return data.inmuebles;
+    }
+  });
+
+  protected pctVotantes = computed(() => {
+    const d = this.inmueblesVotos();
+    if (!d || d.total_inmuebles === 0) return 0;
+    return (d.inmuebles_votaron / d.total_inmuebles) * 100;
+  });
 
   protected form = this.fb.nonNullable.group({
     pregunta: ['', [Validators.required, Validators.maxLength(1000)]],
@@ -171,6 +236,18 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
       },
       error: () => {},
       complete: () => this.loadingResultados.set(false),
+    });
+    this.loadInmueblesVotos();
+  }
+
+  private loadInmueblesVotos() {
+    const id = this.preguntaId();
+    if (!id) return;
+    this.loadingInmuebles.set(true);
+    this.preguntaService.getInmueblesVotos(id).subscribe({
+      next: (data) => this.inmueblesVotos.set(data),
+      error: () => {},
+      complete: () => this.loadingInmuebles.set(false),
     });
   }
 

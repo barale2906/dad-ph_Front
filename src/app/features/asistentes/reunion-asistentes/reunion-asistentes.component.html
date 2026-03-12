@@ -20,12 +20,17 @@
         <label class="form-label">Buscar inmueble</label>
         <div class="search-wrap">
           <input
+            #searchInput
             type="text"
             class="input"
             placeholder="Nomenclatura (ej: AP-101)"
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearchChange($event)"
+            (keydown)="onSearchKeydown($event)"
             autocomplete="off"
+            role="combobox"
+            [attr.aria-expanded]="sugerencias().length > 0"
+            aria-autocomplete="list"
           />
           @if (inmuebleSeleccionado()) {
             <button type="button" class="search-clear" (click)="limpiarSeleccion()" title="Limpiar">✕</button>
@@ -36,9 +41,16 @@
         @if (searchLoading()) {
           <div class="search-hint">Buscando...</div>
         } @else if (sugerencias().length > 0 && !inmuebleSeleccionado()) {
-          <ul class="suggestions">
-            @for (inm of sugerencias(); track inm.id) {
-              <li class="suggestion-item" (click)="seleccionarInmueble(inm)">
+          <ul class="suggestions" role="listbox">
+            @for (inm of sugerencias(); track inm.id; let i = $index) {
+              <li
+                class="suggestion-item"
+                [class.suggestion-item--active]="sugerenciaActivaIdx() === i"
+                role="option"
+                [attr.aria-selected]="sugerenciaActivaIdx() === i"
+                (click)="seleccionarInmueble(inm)"
+                (mouseenter)="sugerenciaActivaIdx.set(i)"
+              >
                 <span class="sug-nomenclatura">{{ inm.nomenclatura }}</span>
                 <span class="sug-meta">{{ inm.tipo }} · {{ inm.coeficiente }}%</span>
                 @if (inm.propietario_nombre) {
@@ -47,6 +59,7 @@
               </li>
             }
           </ul>
+          <div class="search-keys-hint">↑↓ navegar · Enter seleccionar · Esc cerrar</div>
         } @else if (searchQuery().length > 1 && sugerencias().length === 0 && !searchLoading() && !inmuebleSeleccionado()) {
           <div class="search-hint">Sin resultados para "{{ searchQuery() }}"</div>
         }
