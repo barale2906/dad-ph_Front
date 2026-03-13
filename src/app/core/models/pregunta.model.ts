@@ -27,7 +27,15 @@ export interface PreguntaCreatePayload {
   orden?: number;
 }
 
+/** PUT — reemplazo completo: pregunta, estado y orden son obligatorios */
 export interface PreguntaUpdatePayload {
+  pregunta: string;
+  estado: PreguntaEstado;
+  orden: number;
+}
+
+/** PATCH — actualización parcial: todos los campos opcionales */
+export interface PreguntaPatchPayload {
   pregunta?: string;
   estado?: PreguntaEstado;
   orden?: number;

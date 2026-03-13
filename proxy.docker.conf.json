@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://host.docker.internal:8000",
+    "target": "http://host.docker.internal:80",
     "secure": false,
     "changeOrigin": true
   }

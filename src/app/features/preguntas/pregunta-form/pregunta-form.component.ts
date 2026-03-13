@@ -40,6 +40,13 @@ interface PieSlice {
   percent: number;
 }
 
+interface VotoHistItem {
+  barcode: string;
+  nomenclaturas: string;
+  opcionTexto: string;
+  time: Date;
+}
+
 const PIE_COLORS = [
   '#00ff88',
   '#00d4ff',
@@ -98,6 +105,7 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
   protected votoLoading = signal(false);
   protected votoMsg = signal('');
   protected votoError = signal('');
+  protected votoHistory = signal<VotoHistItem[]>([]);
 
   // Opciones eliminadas (para sincronizar al guardar)
   private deletedOpcionIds: number[] = [];
@@ -303,6 +311,7 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
         .update(editId, {
           pregunta: v.pregunta,
           estado: this.estadoActual(),
+          orden: this.pregunta()?.orden ?? 1,
         })
         .subscribe({
           next: (p) => {
@@ -390,13 +399,15 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
     if (!id) return;
     this.actionLoading.set(true);
     this.preguntaService.abrir(id).subscribe({
-      next: (p) => {
-        this.pregunta.set(p);
-        this.startPolling();
-        this.activeTab.set('resultados');
+      next: () => {
+        this.votoHistory.set([]);
+        this.selectedOpcionId.set(null);
+        this.barcodeValue.set('');
+        this.votoMsg.set('');
+        this.votoError.set('');
+        this.pollUntilEstado(id, 'abierta', () => this.startPolling());
       },
       error: () => this.actionLoading.set(false),
-      complete: () => this.actionLoading.set(false),
     });
   }
 
@@ -405,23 +416,47 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
     if (!id) return;
     this.actionLoading.set(true);
     this.preguntaService.cerrar(id).subscribe({
-      next: (p) => {
-        this.pregunta.set(p);
+      next: () => {
         this.stopPolling();
-        this.refreshResultados();
+        this.pollUntilEstado(id, 'cerrada', () => this.refreshResultados());
       },
       error: () => this.actionLoading.set(false),
-      complete: () => this.actionLoading.set(false),
+    });
+  }
+
+  private pollUntilEstado(
+    id: number,
+    estadoEsperado: string,
+    onSuccess: () => void,
+    intentos = 0
+  ) {
+    const maxIntentos = 10;
+    const delay = 1000;
+    this.preguntaService.getById(id).subscribe({
+      next: (p) => {
+        this.pregunta.set(p);
+        if (p.estado === estadoEsperado) {
+          this.actionLoading.set(false);
+          onSuccess();
+        } else if (intentos < maxIntentos) {
+          setTimeout(
+            () => this.pollUntilEstado(id, estadoEsperado, onSuccess, intentos + 1),
+            delay
+          );
+        } else {
+          this.actionLoading.set(false);
+        }
+      },
+      error: () => this.actionLoading.set(false),
     });
   }
 
   protected cancelarVotacion() {
     const id = this.preguntaId();
-    const p = this.pregunta();
-    if (!id || !p) return;
+    if (!id) return;
     this.actionLoading.set(true);
     this.preguntaService
-      .update(id, { pregunta: p.pregunta, estado: 'cancelada', orden: p.orden })
+      .patch(id, { estado: 'cancelada' })
       .subscribe({
         next: (updated) => {
           this.pregunta.set(updated);
@@ -458,40 +493,51 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
     const preguntaId = this.preguntaId();
     if (!barcode || !opcionId || !preguntaId || this.votoLoading()) return;
 
+    const codigoBarrasNum = parseInt(barcode, 10);
+    if (isNaN(codigoBarrasNum) || codigoBarrasNum <= 0) {
+      this.votoError.set('El código de barras debe ser un número válido.');
+      return;
+    }
+
     this.votoLoading.set(true);
     this.votoMsg.set('');
     this.votoError.set('');
 
-    this.asistenteService.getByBarcode(barcode).subscribe({
+    this.asistenteService.getByReunion(this.reunionId, { codigo_barras: codigoBarrasNum }).subscribe({
       next: (res) => {
         const asistente = res.data[0];
         if (!asistente) {
-          this.votoError.set('Código de barras no encontrado en el sistema.');
+          this.votoError.set(`Código ${barcode} no registrado en esta reunión.`);
           this.votoLoading.set(false);
+          setTimeout(() => this.barcodeRef?.nativeElement?.focus(), 80);
           return;
         }
-        const inmuebleId = asistente.inmuebles?.[0]?.inmueble_id;
+
+        const opcionTexto = this.opcionesActuales().find((o) => o.id === opcionId)?.texto ?? '';
+        const nomenclaturas = asistente.inmuebles.map((i) => i.nomenclatura).join(', ');
+
         this.votoService
           .registrar({
             pregunta_id: preguntaId,
             opcion_id: opcionId,
             asistente_id: asistente.id,
-            ...(inmuebleId ? { inmueble_id: inmuebleId } : {}),
           })
           .subscribe({
             next: () => {
-              const opcionTexto =
-                this.opcionesActuales().find((o) => o.id === opcionId)?.texto ?? '';
-              this.votoMsg.set(`Voto registrado — ${asistente.nombre} → ${opcionTexto}`);
+              const etiqueta = nomenclaturas || `Código ${barcode}`;
+              this.votoMsg.set(`${etiqueta} → ${opcionTexto}`);
+              this.votoHistory.update((h) => [
+                { barcode, nomenclaturas: etiqueta, opcionTexto, time: new Date() },
+                ...h.slice(0, 9),
+              ]);
               this.barcodeValue.set('');
-              this.refreshResultados();
-              this.activeTab.set('resultados');
-              setTimeout(() => this.votoMsg.set(''), 5000);
-              setTimeout(() => this.barcodeRef?.nativeElement?.focus(), 100);
+              setTimeout(() => this.votoMsg.set(''), 4000);
+              setTimeout(() => this.barcodeRef?.nativeElement?.focus(), 80);
             },
             error: (err) => {
               this.votoError.set(err?.error?.message ?? 'Error al registrar el voto.');
               this.votoLoading.set(false);
+              setTimeout(() => this.barcodeRef?.nativeElement?.focus(), 80);
             },
             complete: () => this.votoLoading.set(false),
           });
@@ -499,8 +545,13 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
       error: () => {
         this.votoError.set('Error al buscar el código de barras.');
         this.votoLoading.set(false);
+        setTimeout(() => this.barcodeRef?.nativeElement?.focus(), 80);
       },
     });
+  }
+
+  protected clearVotoHistory() {
+    this.votoHistory.set([]);
   }
 
   // ── Gráficos SVG de torta ──────────────────────────────────────────────────

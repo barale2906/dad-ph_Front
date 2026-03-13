@@ -129,7 +129,7 @@
       <!-- Estado y controles -->
       <div class="estado-section">
         <div class="estado-info">
-          <span class="estado-label">Estado actual:</span>
+          <span class="estado-label">Estado:</span>
           <span class="estado-badge estado-{{ estadoActual() }}">{{ estadoActual() }}</span>
         </div>
         <div class="estado-actions">
@@ -162,7 +162,7 @@
             </button>
           }
           @if (estadoActual() === 'cerrada') {
-            <span class="hint-text">La votación está cerrada. Consulta los resultados en la pestaña Resultados.</span>
+            <span class="hint-text">Votación cerrada. Consulta los resultados en la pestaña Resultados.</span>
           }
           @if (estadoActual() === 'cancelada') {
             <span class="hint-text estado-cancelada">Votación cancelada.</span>
@@ -170,20 +170,31 @@
         </div>
       </div>
 
-      <!-- Scanner de código de barras (solo cuando está abierta) -->
-      @if (estadoActual() === 'abierta') {
+      <!-- ── Opciones de respuesta (siempre visibles) ── -->
+      @if (opcionesActuales().length > 0) {
         <div class="scanner-section">
-          <h3 class="scanner-title">Registrar voto</h3>
+          <div class="scanner-title-row">
+            <h3 class="scanner-title">
+              @if (estadoActual() === 'abierta') { Registrar voto }
+              @else { Opciones de respuesta }
+            </h3>
+            @if (estadoActual() !== 'abierta' && estadoActual() !== 'cerrada') {
+              <span class="hint-text">(Abre la votación para habilitar el registro)</span>
+            }
+          </div>
 
-          <!-- Selección de opción -->
+          <!-- Botones de opción -->
           <div class="opcion-selector">
-            <p class="selector-label">1. Selecciona la opción de voto:</p>
+            @if (estadoActual() === 'abierta') {
+              <p class="selector-label">1. Selecciona la opción y luego escanea el código:</p>
+            }
             <div class="opcion-btns">
               @for (op of opcionesActuales(); track op.id) {
                 <button
                   type="button"
                   class="btn-opcion"
                   [class.selected]="selectedOpcionId() === op.id"
+                  [disabled]="estadoActual() !== 'abierta'"
                   (click)="selectOpcion(op.id)"
                 >
                   {{ op.texto }}
@@ -192,14 +203,17 @@
             </div>
           </div>
 
-          <!-- Input del código de barras -->
-          @if (selectedOpcionId()) {
+          <!-- Input de código de barras (solo cuando hay opción seleccionada y votación abierta) -->
+          @if (estadoActual() === 'abierta' && selectedOpcionId()) {
             <div class="barcode-section">
-              <p class="selector-label">2. Escanea o ingresa el código de barras:</p>
+              <p class="selector-label">
+                2. Escanea o digita el código de barras y presiona Enter:
+              </p>
               <div class="barcode-row">
                 <input
                   #barcodeRef
                   type="text"
+                  inputmode="numeric"
                   class="input barcode-input"
                   placeholder="Código de barras..."
                   [value]="barcodeValue()"
@@ -219,21 +233,47 @@
               </div>
 
               <div class="barcode-opcion-sel">
-                Opción seleccionada:
+                Opción activa:
                 <strong>
                   {{ opcionesActuales().find(o => o.id === selectedOpcionId())?.texto }}
                 </strong>
+                <span class="barcode-opcion-hint">(clic en otra opción para cambiar)</span>
               </div>
 
               @if (votoMsg()) {
                 <div class="alert-success">✓ {{ votoMsg() }}</div>
               }
               @if (votoError()) {
-                <div class="alert-error">{{ votoError() }}</div>
+                <div class="alert-error">⚠ {{ votoError() }}</div>
               }
             </div>
           }
+
+          <!-- Historial de votos registrados en esta sesión -->
+          @if (votoHistory().length > 0) {
+            <div class="voto-history">
+              <div class="history-header">
+                <span class="history-title">Últimos registrados</span>
+                <button type="button" class="btn-link history-clear" (click)="clearVotoHistory()">
+                  Limpiar
+                </button>
+              </div>
+              <div class="history-list">
+                @for (item of votoHistory(); track $index) {
+                  <div class="history-item" [class.history-item-first]="$index === 0">
+                    <span class="history-time">{{ item.time | date:'HH:mm:ss' }}</span>
+                    <span class="history-nom">{{ item.nomenclaturas }}</span>
+                    <span class="history-arrow">→</span>
+                    <span class="history-opcion">{{ item.opcionTexto }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
         </div>
+      } @else {
+        <p class="hint-text">Sin opciones definidas. Ve a Configuración para agregarlas.</p>
       }
 
     </div>

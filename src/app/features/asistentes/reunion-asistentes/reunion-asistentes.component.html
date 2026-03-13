@@ -133,7 +133,6 @@
                 <th>Inmueble</th>
                 <th>Coeficiente</th>
                 <th>Código barras</th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -143,19 +142,11 @@
                     <td class="cell-nomenclatura">{{ inm.nomenclatura }}</td>
                     <td>{{ inm.coeficiente }}%</td>
                     <td>{{ asistente.codigo_barras ?? '—' }}</td>
-                    <td class="cell-actions">
-                      @if (deleteConfirmId() === asistente.id) {
-                        <button type="button" class="btn-link btn-link-danger" (click)="doDelete(asistente.id)">Confirmar</button>
-                        <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
-                      } @else {
-                        <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(asistente.id)">Quitar</button>
-                      }
-                    </td>
                   </tr>
                 }
               } @empty {
                 <tr>
-                  <td colspan="4" class="empty-row">Aún no hay inmuebles registrados</td>
+                  <td colspan="3" class="empty-row">Aún no hay inmuebles registrados</td>
                 </tr>
               }
             </tbody>

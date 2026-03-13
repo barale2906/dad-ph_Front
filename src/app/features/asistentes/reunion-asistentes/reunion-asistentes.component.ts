@@ -24,7 +24,6 @@ export class ReunionAsistentesComponent implements OnInit {
   // Lista de registrados
   protected asistentes = signal<AsistenteReunion[]>([]);
   protected loading = signal(true);
-  protected deleteConfirmId = signal<number | null>(null);
 
   // Formulario de registro rápido
   protected searchQuery = signal('');
@@ -158,24 +157,6 @@ export class ReunionAsistentesComponent implements OnInit {
         this.registering.set(false);
         this.registerError.set(err?.error?.message ?? 'Error al registrar.');
       },
-    });
-  }
-
-  protected confirmDelete(id: number) {
-    this.deleteConfirmId.set(id);
-  }
-
-  protected cancelDelete() {
-    this.deleteConfirmId.set(null);
-  }
-
-  protected doDelete(id: number) {
-    this.asistenteService.deleteFromReunion(this.reunionId, id).subscribe({
-      next: () => {
-        this.deleteConfirmId.set(null);
-        this.cargarAsistentes();
-      },
-      error: () => this.deleteConfirmId.set(null),
     });
   }
 

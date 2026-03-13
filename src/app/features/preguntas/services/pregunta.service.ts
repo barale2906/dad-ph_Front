@@ -5,6 +5,7 @@ import type {
   Pregunta,
   PreguntaCreatePayload,
   PreguntaUpdatePayload,
+  PreguntaPatchPayload,
 } from '../../../core/models/pregunta.model';
 import type { PaginatedResponse } from '../../../core/models/paginated-response.model';
 import type {
@@ -49,20 +50,22 @@ export class PreguntaService {
       .pipe(map((r) => r.data));
   }
 
+  patch(id: number, payload: PreguntaPatchPayload) {
+    return this.api
+      .patch<{ message: string; data: Pregunta }>(`/preguntas/${id}`, payload)
+      .pipe(map((r) => r.data));
+  }
+
   delete(id: number) {
     return this.api.delete<{ message?: string }>(`/preguntas/${id}`);
   }
 
   abrir(id: number) {
-    return this.api
-      .post<{ message: string; data: Pregunta }>(`/preguntas/${id}/abrir`, {})
-      .pipe(map((r) => r.data));
+    return this.api.post<{ message: string; status: string }>(`/preguntas/${id}/abrir`, {});
   }
 
   cerrar(id: number) {
-    return this.api
-      .post<{ message: string; data: Pregunta }>(`/preguntas/${id}/cerrar`, {})
-      .pipe(map((r) => r.data));
+    return this.api.post<{ message: string; status: string }>(`/preguntas/${id}/cerrar`, {});
   }
 
   getResultados(preguntaId: number) {

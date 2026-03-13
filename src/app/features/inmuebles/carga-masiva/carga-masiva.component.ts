@@ -30,7 +30,7 @@ export class CargaMasivaComponent {
       'activo',
     ];
     const example = ['Apto 101', '5.5', 'Apartamento', '12345678', 'Juan Pérez', '3001234567', 'juan@ejemplo.com', '1'];
-    const csv = [headers.join(','), example.join(',')].join('\n');
+    const csv = [headers.join(';'), example.join(';')].join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

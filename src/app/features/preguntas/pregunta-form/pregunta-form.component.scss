@@ -259,12 +259,22 @@
 .scanner-section {
   border-top: var(--border-subtle);
   padding-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.scanner-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .scanner-title {
   font-size: 1rem;
   color: var(--neon-blue);
-  margin: 0 0 1rem;
+  margin: 0;
 }
 
 .selector-label {
@@ -274,65 +284,173 @@
 }
 
 .opcion-selector {
-  margin-bottom: 1.25rem;
+  margin: 0;
 }
 
 .opcion-btns {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 .btn-opcion {
-  padding: 0.55rem 1.25rem;
+  padding: 0.7rem 1.6rem;
   border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.3);
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.2s;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: all 0.18s;
+  min-width: 110px;
+  text-align: center;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: var(--neon-blue);
     color: var(--neon-blue);
+    background: rgba(0, 212, 255, 0.08);
   }
 
   &.selected {
     border-color: var(--neon-green);
-    background: rgba(0, 255, 136, 0.12);
+    background: rgba(0, 255, 136, 0.14);
     color: var(--neon-green);
-    box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+    box-shadow: 0 0 12px rgba(0, 255, 136, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 }
 
 .barcode-section {
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 1.1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .barcode-row {
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  margin-bottom: 0.6rem;
 }
 
 .barcode-input {
   flex: 1;
   font-family: var(--font-mono);
-  font-size: 1rem;
-  letter-spacing: 0.05em;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  padding: 0.7rem 1rem;
 }
 
 .barcode-opcion-sel {
   font-size: 0.85rem;
   color: var(--text-secondary);
 
-  strong { color: var(--neon-green); }
+  strong { color: var(--neon-green); font-size: 0.9rem; }
+}
+
+.barcode-opcion-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  opacity: 0.65;
+  margin-left: 0.4rem;
+}
+
+/* ─── Historial de votos ─────────────────────────────────────────────────── */
+.voto-history {
+  border-top: var(--border-subtle);
+  padding-top: 1rem;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.history-title {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.history-clear {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.55;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover { opacity: 1; color: var(--accent-red); }
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 70px 1fr 18px 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.85rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 1; }
+}
+
+.history-item-first {
+  opacity: 1;
+  background: rgba(0, 255, 136, 0.06);
+  border: 1px solid rgba(0, 255, 136, 0.15);
+}
+
+.history-time {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.history-nom {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-arrow {
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.history-opcion {
+  font-weight: 700;
+  color: var(--neon-green);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ─── TAB RESULTADOS ─────────────────────────────────────────────────────── */
