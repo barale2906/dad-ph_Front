@@ -82,7 +82,8 @@ export class ReunionDetailComponent implements OnInit {
   }
 
   protected formatFecha(fecha: string) {
-    return new Date(fecha).toLocaleDateString('es-CO', {
+    const [year, month, day] = fecha.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('es-CO', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

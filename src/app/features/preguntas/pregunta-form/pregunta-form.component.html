@@ -17,20 +17,22 @@
   <!-- Tabs (solo visibles cuando ya existe la pregunta) -->
   @if (hasQuestion()) {
     <div class="vot-tabs" role="tablist">
-      <button
-        role="tab"
-        [class.active]="activeTab() === 'config'"
-        (click)="activeTab.set('config')"
-      >
-        Configuración
-      </button>
-      <button
-        role="tab"
-        [class.active]="activeTab() === 'votar'"
-        (click)="activeTab.set('votar')"
-      >
-        Votación
-      </button>
+      @if (!reunionFinalizada()) {
+        <button
+          role="tab"
+          [class.active]="activeTab() === 'config'"
+          (click)="activeTab.set('config')"
+        >
+          Configuración
+        </button>
+        <button
+          role="tab"
+          [class.active]="activeTab() === 'votar'"
+          (click)="activeTab.set('votar')"
+        >
+          Votación
+        </button>
+      }
       <button
         role="tab"
         [class.active]="activeTab() === 'resultados'"
@@ -44,7 +46,7 @@
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   <!-- TAB: CONFIGURACIÓN                                                     -->
   <!-- ══════════════════════════════════════════════════════════════════════ -->
-  @if (!hasQuestion() || activeTab() === 'config') {
+  @if ((!hasQuestion() || activeTab() === 'config') && !reunionFinalizada()) {
     @if (loading()) {
       <div class="loading-msg">Cargando...</div>
     } @else {
@@ -123,7 +125,7 @@
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   <!-- TAB: VOTACIÓN                                                          -->
   <!-- ══════════════════════════════════════════════════════════════════════ -->
-  @if (hasQuestion() && activeTab() === 'votar') {
+  @if (hasQuestion() && activeTab() === 'votar' && !reunionFinalizada()) {
     <div class="votar-panel panel-hud">
 
       <!-- Estado y controles -->

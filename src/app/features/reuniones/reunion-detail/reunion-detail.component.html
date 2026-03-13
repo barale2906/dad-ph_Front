@@ -9,7 +9,9 @@
 
           <!-- Siempre visibles -->
           <a [routerLink]="['/reuniones', r.id, 'orden-dia']" class="btn btn-outline">Orden del día</a>
-          <a [routerLink]="['/reuniones', r.id, 'editar']" class="btn btn-outline">Editar</a>
+          @if (r.estado !== 'finalizada') {
+            <a [routerLink]="['/reuniones', r.id, 'editar']" class="btn btn-outline">Editar</a>
+          }
 
           <!-- Solo cuando está programada -->
           @if (r.estado === 'programada') {

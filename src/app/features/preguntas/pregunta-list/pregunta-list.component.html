@@ -13,9 +13,11 @@
       <option value="cerrada">Cerrada</option>
       <option value="cancelada">Cancelada</option>
     </select>
-    <a [routerLink]="['/reuniones', reunionId, 'preguntas', 'nueva']" class="btn btn-primary">
-      Nueva pregunta
-    </a>
+    @if (reunion()?.estado !== 'finalizada') {
+      <a [routerLink]="['/reuniones', reunionId, 'preguntas', 'nueva']" class="btn btn-primary">
+        Nueva pregunta
+      </a>
+    }
   </div>
 
   @if (loading) {
@@ -29,15 +31,18 @@
             <span class="pregunta-texto">{{ p.pregunta }}</span>
             <span class="badge badge-{{ p.estado }}">{{ p.estado }}</span>
             <div class="pregunta-actions">
-              @if (p.estado === 'cerrada') {
-                <a [routerLink]="['/reuniones', reunionId, 'preguntas', p.id, 'resultados']" class="link">Ver resultados</a>
-              }
-              <a [routerLink]="['/reuniones', reunionId, 'preguntas', p.id, 'editar']" class="link">Editar</a>
-              @if (deleteConfirmId() === p.id) {
-                <button type="button" class="btn-link btn-link-danger" (click)="doDelete(p.id)">Confirmar</button>
-                <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
+              @if (reunion()?.estado === 'finalizada') {
+                <a [routerLink]="['/reuniones', reunionId, 'preguntas', p.id, 'editar']" class="link">Ver resultados</a>
               } @else {
-                <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(p.id)">Eliminar</button>
+                <a [routerLink]="['/reuniones', reunionId, 'preguntas', p.id, 'editar']" class="link">Editar</a>
+              }
+              @if (p.estado !== 'cerrada' && reunion()?.estado !== 'finalizada') {
+                @if (deleteConfirmId() === p.id) {
+                  <button type="button" class="btn-link btn-link-danger" (click)="doDelete(p.id)">Confirmar</button>
+                  <button type="button" class="btn-link" (click)="cancelDelete()">Cancelar</button>
+                } @else {
+                  <button type="button" class="btn-link btn-link-danger" (click)="confirmDelete(p.id)">Eliminar</button>
+                }
               }
             </div>
           </div>

@@ -16,7 +16,9 @@ import { PreguntaService } from '../services/pregunta.service';
 import { OpcionService } from '../services/opcion.service';
 import { VotoService } from '../services/voto.service';
 import { AsistenteService } from '../../asistentes/services/asistente.service';
+import { ReunionService } from '../../reuniones/services/reunion.service';
 import type { Opcion, Pregunta } from '../../../core/models/pregunta.model';
+import type { Reunion } from '../../../core/models/reunion.model';
 import type {
   ResultadosPregunta,
   InmueblesVotosResponse,
@@ -75,9 +77,12 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
   private readonly opcionService = inject(OpcionService);
   private readonly votoService = inject(VotoService);
   private readonly asistenteService = inject(AsistenteService);
+  private readonly reunionService = inject(ReunionService);
 
   protected reunionId = 0;
   protected isEdit = false;
+  protected reunion = signal<Reunion | null>(null);
+  protected reunionFinalizada = computed(() => this.reunion()?.estado === 'finalizada');
   protected pregunta = signal<Pregunta | null>(null);
   protected preguntaId = signal<number | null>(null);
   protected loading = signal(true);
@@ -200,6 +205,20 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.reunionId = +this.route.snapshot.paramMap.get('id')!;
     const preguntaParam = this.route.snapshot.paramMap.get('preguntaId');
+
+    this.reunionService.getById(this.reunionId).subscribe({
+      next: (r: Reunion) => {
+        this.reunion.set(r);
+        if (r.estado === 'finalizada') {
+          if (!preguntaParam || preguntaParam === 'nueva') {
+            this.router.navigate(['/reuniones', this.reunionId, 'preguntas']);
+            return;
+          }
+          this.activeTab.set('resultados');
+        }
+      },
+    });
+
     if (preguntaParam && preguntaParam !== 'nueva') {
       this.isEdit = true;
       const id = +preguntaParam;

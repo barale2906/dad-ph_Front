@@ -29,29 +29,31 @@
     <div class="loading">Cargando...</div>
   } @else {
     <!-- Acciones principales -->
-    <div class="toolbar">
-      <button type="button" class="btn btn-primary" (click)="toggleForm()">
-        {{ showForm && editingId() === null ? 'Cancelar' : '+ Nuevo ítem' }}
-      </button>
-      <button
-        type="button"
-        class="btn btn-outline"
-        [disabled]="csvImporting"
-        (click)="triggerCsvInput()"
-      >
-        {{ csvImporting ? 'Cargando...' : 'Importar CSV' }}
-      </button>
-      <button type="button" class="btn btn-ghost" (click)="downloadTemplate()">
-        Descargar plantilla
-      </button>
-      <input
-        #csvInput
-        type="file"
-        accept=".csv,.txt"
-        class="csv-hidden"
-        (change)="onCsvSelected($event)"
-      />
-    </div>
+    @if (reunion()?.estado !== 'finalizada') {
+      <div class="toolbar">
+        <button type="button" class="btn btn-primary" (click)="toggleForm()">
+          {{ showForm && editingId() === null ? 'Cancelar' : '+ Nuevo ítem' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline"
+          [disabled]="csvImporting"
+          (click)="triggerCsvInput()"
+        >
+          {{ csvImporting ? 'Cargando...' : 'Importar CSV' }}
+        </button>
+        <button type="button" class="btn btn-ghost" (click)="downloadTemplate()">
+          Descargar plantilla
+        </button>
+        <input
+          #csvInput
+          type="file"
+          accept=".csv,.txt"
+          class="csv-hidden"
+          (change)="onCsvSelected($event)"
+        />
+      </div>
+    }
 
     @if (csvError) {
       <div class="alert alert-error">{{ csvError }}</div>
@@ -167,14 +169,16 @@
           </span>
 
           <!-- Acciones -->
-          <div class="item-actions">
-            <button type="button" class="btn-icon" title="Editar" (click)="edit(item)">
-              ✏️
-            </button>
-            <button type="button" class="btn-icon btn-icon-danger" title="Eliminar" (click)="deleteItem(item)">
-              🗑️
-            </button>
-          </div>
+          @if (reunion()?.estado !== 'finalizada') {
+            <div class="item-actions">
+              <button type="button" class="btn-icon" title="Editar" (click)="edit(item)">
+                ✏️
+              </button>
+              <button type="button" class="btn-icon btn-icon-danger" title="Eliminar" (click)="deleteItem(item)">
+                🗑️
+              </button>
+            </div>
+          }
 
           <!-- Placeholder de drag -->
           <ng-template cdkDragPlaceholder>
