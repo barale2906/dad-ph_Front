@@ -193,6 +193,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reuniones/:id/tardio',
+        loadComponent: () =>
+          import('./features/asistentes/tardio-asistentes/tardio-asistentes.component').then(
+            (m) => m.TardioAsistentesComponent
+          ),
+      },
+      {
         path: 'reuniones/:id/en-vivo',
         loadComponent: () =>
           import('./features/reuniones/en-vivo/en-vivo.component').then(

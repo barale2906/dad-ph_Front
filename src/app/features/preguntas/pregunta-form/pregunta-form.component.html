@@ -102,7 +102,7 @@
               </div>
             }
             @if (opcionesArray.length === 0) {
-              <p class="sin-opciones">Sin opciones definidas. Agrega al menos dos.</p>
+              <p class="sin-opciones">Sin opciones definidas. Agrega al menos una.</p>
             }
           </div>
         </div>
@@ -139,12 +139,12 @@
             <button
               class="btn btn-success"
               (click)="abrirVotacion()"
-              [disabled]="actionLoading() || opcionesActuales().length < 2"
+              [disabled]="actionLoading() || opcionesActuales().length < 1"
             >
               {{ actionLoading() ? 'Abriendo...' : '▶ Abrir votación' }}
             </button>
-            @if (opcionesActuales().length < 2) {
-              <span class="hint-text">Necesitas al menos 2 opciones para abrir la votación.</span>
+            @if (opcionesActuales().length < 1) {
+              <span class="hint-text">Necesitas al menos 1 opción para abrir la votación.</span>
             }
           }
           @if (estadoActual() === 'abierta') {

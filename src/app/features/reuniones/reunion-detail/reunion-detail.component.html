@@ -28,6 +28,7 @@
           <!-- Solo cuando está en curso -->
           @if (r.estado === 'en_curso') {
             <a [routerLink]="['/reuniones', r.id, 'asistentes']" class="btn btn-primary">Asistencia</a>
+            <a [routerLink]="['/reuniones', r.id, 'tardio']" class="btn btn-warn">Tardío</a>
             <a [routerLink]="['/reuniones', r.id, 'preguntas']" class="btn btn-outline">Votaciones</a>
             <a [routerLink]="['/reuniones', r.id, 'en-vivo']" class="btn btn-primary">Vista en vivo</a>
             <button

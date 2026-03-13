@@ -87,6 +87,13 @@ export class AsistenteService {
     return this.api.delete<{ message?: string }>(`/reuniones/${reunionId}/asistentes/${asistenteId}`);
   }
 
+  registroTardio(reunionId: number, payload: AsistenteReunionCreatePayload) {
+    return this.api.post<{ message: string; data: AsistenteReunion }>(
+      `/reuniones/${reunionId}/asistentes/registro-tardio`,
+      payload
+    );
+  }
+
   // ── Barcodes ─────────────────────────────────────────────────────────────
 
   /** Genera PDF de códigos de barras. Devuelve blob para descarga. */

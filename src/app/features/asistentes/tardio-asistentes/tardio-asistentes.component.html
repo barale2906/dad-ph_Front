@@ -1,0 +1,206 @@
+<div class="ras-view">
+
+  <!-- Cabecera -->
+  <div class="ras-header">
+    <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a la reunión</a>
+    <h1 class="ras-title">Registro Tardío</h1>
+    <div class="ras-header__badge">
+      <span class="badge-tardio">Después del quórum</span>
+    </div>
+  </div>
+
+  <div class="ras-layout">
+
+    <!-- ── Panel izquierdo: formulario ── -->
+    <div class="ras-form-panel panel-hud">
+      <h2 class="panel-title">Nuevo registro tardío</h2>
+      <p class="panel-desc">
+        Este registro no computa en el quórum. El asistente podrá participar en votaciones si se proporcionó teléfono.
+      </p>
+
+      <!-- Búsqueda de inmueble -->
+      <div class="form-group">
+        <label class="form-label">Buscar inmueble <span class="form-required">*</span></label>
+        <div class="search-wrap">
+          <input
+            #searchInput
+            type="text"
+            class="input"
+            placeholder="Nomenclatura (ej: AP-101)"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            (keydown)="onSearchKeydown($event)"
+            autocomplete="off"
+            role="combobox"
+            [attr.aria-expanded]="sugerencias().length > 0"
+            aria-autocomplete="list"
+          />
+          @if (inmuebleSeleccionado()) {
+            <button type="button" class="search-clear" (click)="limpiarSeleccion()" title="Limpiar">✕</button>
+          }
+        </div>
+
+        <!-- Sugerencias -->
+        @if (searchLoading()) {
+          <div class="search-hint">Buscando...</div>
+        } @else if (sugerencias().length > 0 && !inmuebleSeleccionado()) {
+          <ul class="suggestions" role="listbox">
+            @for (inm of sugerencias(); track inm.id; let i = $index) {
+              <li
+                class="suggestion-item"
+                [class.suggestion-item--active]="sugerenciaActivaIdx() === i"
+                role="option"
+                [attr.aria-selected]="sugerenciaActivaIdx() === i"
+                (click)="seleccionarInmueble(inm)"
+                (mouseenter)="sugerenciaActivaIdx.set(i)"
+              >
+                <span class="sug-nomenclatura">{{ inm.nomenclatura }}</span>
+                <span class="sug-meta">{{ inm.tipo }} · {{ inm.coeficiente }}%</span>
+                @if (inm.propietario_nombre) {
+                  <span class="sug-owner">{{ inm.propietario_nombre }}</span>
+                }
+              </li>
+            }
+          </ul>
+          <div class="search-keys-hint">↑↓ navegar · Enter seleccionar · Esc cerrar</div>
+        } @else if (searchQuery().length > 1 && sugerencias().length === 0 && !searchLoading() && !inmuebleSeleccionado()) {
+          <div class="search-hint">Sin resultados para "{{ searchQuery() }}"</div>
+        }
+
+        <!-- Inmueble seleccionado -->
+        @if (inmuebleSeleccionado(); as inm) {
+          <div class="selected-inmueble">
+            <span class="selected-badge">{{ inm.nomenclatura }}</span>
+            <span class="selected-meta">{{ inm.tipo }} · Coef. {{ inm.coeficiente }}%</span>
+            @if (inm.propietario_nombre) {
+              <span class="selected-meta">{{ inm.propietario_nombre }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Selector tipo identificador -->
+      <div class="form-group">
+        <label class="form-label">Tipo de identificación <span class="form-required">*</span></label>
+        <div class="tipo-toggle">
+          <button
+            type="button"
+            class="tipo-btn"
+            [class.tipo-btn--active]="tipoIdentificador() === 'codigo_barras'"
+            (click)="onTipoChange('codigo_barras')"
+          >
+            Código de barras
+          </button>
+          <button
+            type="button"
+            class="tipo-btn"
+            [class.tipo-btn--active]="tipoIdentificador() === 'telefono'"
+            (click)="onTipoChange('telefono')"
+          >
+            Teléfono (WhatsApp)
+          </button>
+        </div>
+      </div>
+
+      <!-- Campo dinámico según tipo -->
+      @if (tipoIdentificador() === 'codigo_barras') {
+        <div class="form-group">
+          <label class="form-label">Código de barras <span class="form-required">*</span></label>
+          <input
+            type="number"
+            class="input"
+            placeholder="Número del código (ej: 42)"
+            [ngModel]="formCodigoBarras()"
+            (ngModelChange)="formCodigoBarras.set($event || null)"
+            min="1"
+            autocomplete="off"
+          />
+        </div>
+      } @else {
+        <div class="form-group">
+          <label class="form-label">Teléfono <span class="form-required">*</span></label>
+          <input
+            type="tel"
+            class="input"
+            placeholder="Ej: 573001234567"
+            [ngModel]="formTelefono()"
+            (ngModelChange)="formTelefono.set($event)"
+            autocomplete="off"
+          />
+          <span class="form-hint">Formato internacional sin espacios (ej: 573001234567)</span>
+        </div>
+      }
+
+      @if (registerError()) {
+        <div class="alert alert-error">{{ registerError() }}</div>
+      }
+      @if (registerSuccess()) {
+        <div class="alert alert-success">{{ registerSuccess() }}</div>
+      }
+
+      <button
+        type="button"
+        class="btn btn-warn btn-full"
+        [disabled]="registering() || !puedeRegistrar()"
+        (click)="registrar()"
+      >
+        {{ registering() ? 'Registrando...' : 'Registrar asistente tardío' }}
+      </button>
+    </div>
+
+    <!-- ── Panel derecho: registrados en esta sesión ── -->
+    <div class="ras-list-panel">
+
+      <!-- Resumen -->
+      <div class="ras-summary panel-hud">
+        <div class="summary-item">
+          <span class="summary-label">Tardíos registrados</span>
+          <span class="summary-value">{{ totalRegistrados() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Coeficiente (sin quórum)</span>
+          <span class="summary-value summary-value--warn">{{ totalCoeficiente() }}%</span>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-wrap panel-hud">
+        @if (registrados().length === 0) {
+          <div class="empty-state">
+            <p class="empty-row">Aún no hay registros tardíos en esta sesión</p>
+          </div>
+        } @else {
+          <table class="ras-table">
+            <thead>
+              <tr>
+                <th>Inmueble</th>
+                <th>Coeficiente</th>
+                <th>Identificación</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (asistente of registrados(); track asistente.id) {
+                @for (inm of asistente.inmuebles; track inm.id) {
+                  <tr>
+                    <td class="cell-nomenclatura">{{ inm.nomenclatura }}</td>
+                    <td>{{ inm.coeficiente }}%</td>
+                    <td>
+                      @if (asistente.telefono) {
+                        <span class="id-tipo id-tipo--tel">📱 {{ asistente.telefono }}</span>
+                      } @else if (asistente.codigo_barras) {
+                        <span class="id-tipo id-tipo--bar">🔖 {{ asistente.codigo_barras }}</span>
+                      } @else {
+                        <span>—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>
