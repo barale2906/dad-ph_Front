@@ -155,7 +155,8 @@ export class ReunionAsistentesComponent implements OnInit {
       },
       error: (err) => {
         this.registering.set(false);
-        this.registerError.set(err?.error?.message ?? 'Error al registrar.');
+        const msg = this.getRegisterErrorMessage(err);
+        this.registerError.set(msg);
       },
     });
   }
@@ -163,4 +164,16 @@ export class ReunionAsistentesComponent implements OnInit {
   protected totalRegistrados = computed(() =>
     this.asistentes().flatMap((a) => a.inmuebles).length
   );
+
+  /** Mensaje de error según la guía de API de asistentes (409 votación abierta, 429 rate limit). */
+  private getRegisterErrorMessage(err: { status?: number; error?: { message?: string } }): string {
+    const msg = err?.error?.message ?? 'Error al registrar.';
+    if (err?.status === 409 && msg?.toLowerCase().includes('votacion abierta')) {
+      return 'No se puede registrar mientras haya una votación en curso en esta reunión. Espera a que cierre.';
+    }
+    if (err?.status === 429) {
+      return 'Demasiadas peticiones. Espere un momento e intente de nuevo.';
+    }
+    return msg;
+  }
 }

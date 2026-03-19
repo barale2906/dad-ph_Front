@@ -180,8 +180,21 @@ export class TardioAsistentesComponent implements OnInit {
       },
       error: (err) => {
         this.registering.set(false);
-        this.registerError.set(err?.error?.message ?? 'Error al registrar asistente tardío.');
+        const msg = this.getRegisterErrorMessage(err);
+        this.registerError.set(msg);
       },
     });
+  }
+
+  /** Mensaje de error según la guía de API de asistentes (409 votación abierta, 429 rate limit). */
+  private getRegisterErrorMessage(err: { status?: number; error?: { message?: string } }): string {
+    const msg = err?.error?.message ?? 'Error al registrar asistente tardío.';
+    if (err?.status === 409 && msg?.toLowerCase().includes('votacion abierta')) {
+      return 'No se puede registrar mientras haya una votación en curso en esta reunión. Espera a que cierre.';
+    }
+    if (err?.status === 429) {
+      return 'Demasiadas peticiones. Espere un momento e intente de nuevo.';
+    }
+    return msg;
   }
 }

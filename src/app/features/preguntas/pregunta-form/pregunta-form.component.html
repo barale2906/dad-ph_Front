@@ -330,8 +330,8 @@
               </tr>
             </thead>
             <tbody>
-              @for (op of r.opciones; track op.opcion_id) {
-                <tr>
+              @for (op of r.opciones; track op.opcion_id + '-' + op.texto) {
+                <tr [class.row-no-voto]="op.opcion_id === 0">
                   <td class="opcion-cell">{{ op.texto }}</td>
                   <td class="text-right num-cell">{{ op.votos | number }}</td>
                   <td class="text-right num-cell">
@@ -366,15 +366,17 @@
             </tbody>
             <tfoot>
               <tr>
-                <td><strong>Total</strong></td>
-                <td class="text-right"><strong>{{ r.total_votos | number }}</strong></td>
+                <td><strong>Total (asistencia)</strong></td>
                 <td class="text-right">
-                  <strong>{{ (r.total_unidades ?? r.total_votos) | number }}</strong>
+                  <strong>{{ (r.asistencia_unidades ?? r.total_unidades ?? r.total_votos) | number }}</strong>
+                </td>
+                <td class="text-right">
+                  <strong>{{ (r.asistencia_unidades ?? r.total_unidades ?? r.total_votos) | number }}</strong>
                 </td>
                 <td class="text-right">100%</td>
                 @if (hasCoeficienteData()) {
                   <td class="text-right">
-                    <strong>{{ (r.total_coeficiente ?? 0) | number:'1.4-4' }}</strong>
+                    <strong>{{ (r.asistencia_coeficiente ?? r.total_coeficiente ?? 0) | number:'1.4-4' }}</strong>
                   </td>
                   <td class="text-right">100%</td>
                 }
@@ -411,7 +413,7 @@
                 }
               </div>
               <div class="bar-total">
-                Total: <strong>{{ (r.total_unidades ?? r.total_votos) | number }}</strong> unidades
+                Total asistencia: <strong>{{ (r.asistencia_unidades ?? r.total_unidades ?? r.total_votos) | number }}</strong> unidades
               </div>
             } @else {
               <p class="chart-empty">Sin datos suficientes.</p>
@@ -443,7 +445,7 @@
                   }
                 </div>
                 <div class="bar-total">
-                  Total: <strong>{{ (r.total_coeficiente ?? 0) | number:'1.4-4' }}</strong> coeficiente
+                  Total asistencia: <strong>{{ (r.asistencia_coeficiente ?? r.total_coeficiente ?? 0) | number:'1.4-4' }}</strong> coeficiente
                 </div>
               } @else {
                 <p class="chart-empty">Sin datos suficientes.</p>
@@ -534,16 +536,28 @@
             <div class="loading-msg">Cargando detalle...</div>
           } @else if (inmueblesVotos(); as iv) {
 
-            <!-- Resumen de participación -->
+            <!-- Resumen de participación (basado en asistentes registrados) -->
             <div class="ivoto-stats">
               <div class="istat-card istat-total">
                 <span class="istat-val">{{ iv.total_inmuebles }}</span>
-                <span class="istat-label">Total</span>
+                <span class="istat-label">Total PH</span>
               </div>
+              @if ((iv.asistencia_unidades ?? 0) > 0) {
+                <div class="istat-card istat-asistencia">
+                  <span class="istat-val">{{ iv.asistencia_unidades }}</span>
+                  <span class="istat-label">Asistencia</span>
+                </div>
+              }
               <div class="istat-card istat-votaron">
                 <span class="istat-val">{{ iv.inmuebles_votaron }}</span>
                 <span class="istat-label">Votaron</span>
               </div>
+              @if ((iv.no_votaron_unidades ?? 0) > 0) {
+                <div class="istat-card istat-no-voto">
+                  <span class="istat-val">{{ iv.no_votaron_unidades }}</span>
+                  <span class="istat-label">No votaron</span>
+                </div>
+              }
               <div class="istat-card istat-pendientes">
                 <span class="istat-val">{{ iv.inmuebles_pendientes }}</span>
                 <span class="istat-label">Pendientes</span>
@@ -552,10 +566,10 @@
                 <span class="istat-val">{{ pctVotantes() | number:'1.1-1' }}%</span>
                 <span class="istat-label">Participación</span>
               </div>
-              @if (hasCoeficienteData()) {
+              @if (hasCoeficienteData() && (iv.asistencia_coeficiente ?? iv.coeficiente_votante)) {
                 <div class="istat-card istat-coef">
-                  <span class="istat-val">{{ iv.coeficiente_votante | number:'1.2-2' }}</span>
-                  <span class="istat-label">Coef. votante</span>
+                  <span class="istat-val">{{ (iv.asistencia_coeficiente ?? iv.coeficiente_votante) | number:'1.2-2' }}</span>
+                  <span class="istat-label">Coef. asistencia</span>
                 </div>
               }
             </div>
@@ -566,17 +580,17 @@
                 class="ivoto-filter-btn"
                 [class.active]="filtroVotos() === 'todos'"
                 (click)="filtroVotos.set('todos')"
-              >Todos ({{ iv.total_inmuebles }})</button>
+              >Todos ({{ countAsistentesTodos() }})</button>
               <button
                 class="ivoto-filter-btn ivoto-filter-si"
                 [class.active]="filtroVotos() === 'votaron'"
                 (click)="filtroVotos.set('votaron')"
-              >Votaron ({{ iv.inmuebles_votaron }})</button>
+              >Votaron ({{ countAsistentesVotaron() }})</button>
               <button
                 class="ivoto-filter-btn ivoto-filter-no"
-                [class.active]="filtroVotos() === 'pendientes'"
-                (click)="filtroVotos.set('pendientes')"
-              >Pendientes ({{ iv.inmuebles_pendientes }})</button>
+                [class.active]="filtroVotos() === 'no_votaron'"
+                (click)="filtroVotos.set('no_votaron')"
+              >No votaron ({{ countAsistentesNoVotaron() }})</button>
             </div>
 
             <!-- Tabla -->
@@ -607,12 +621,14 @@
                       </td>
                       @if (!ocultarRespuesta()) {
                         <td>
-                          @if (item.opcion_texto) {
+                          @if (item.votado && item.opcion_texto) {
                             <span
                               class="opcion-tag"
                               [style.borderColor]="opcionColorMap().get(item.opcion_id!) ?? '#888'"
                               [style.color]="opcionColorMap().get(item.opcion_id!) ?? '#888'"
                             >{{ item.opcion_texto }}</span>
+                          } @else if (!item.votado) {
+                            <span class="sin-voto-text opcion-no-voto">No votó</span>
                           } @else {
                             <span class="sin-voto-text">—</span>
                           }

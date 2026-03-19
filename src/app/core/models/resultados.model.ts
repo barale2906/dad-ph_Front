@@ -3,6 +3,8 @@ export interface InmuebleVotoItem {
   nomenclatura: string;
   coeficiente: number;
   votado: boolean;
+  /** true si el inmueble está en la reunión (registro normal o tardío) */
+  es_asistente?: boolean;
   opcion_id: number | null;
   opcion_texto: string | null;
   votado_at: string | null;
@@ -17,7 +19,18 @@ export interface InmueblesVotosResponse {
   inmuebles_pendientes: number;
   coeficiente_total: number;
   coeficiente_votante: number;
+  /** Unidades que registraron asistencia en el quórum (normal + tardío) */
+  asistencia_unidades?: number;
+  /** Coeficiente total de la asistencia */
+  asistencia_coeficiente?: number;
+  /** Asistentes que no votaron (unidades, incluye tardíos) */
+  no_votaron_unidades?: number;
+  /** Asistentes que no votaron (coeficiente) */
+  no_votaron_coeficiente?: number;
+  /** Todos los inmuebles de la PH con votado y es_asistente */
   inmuebles: InmuebleVotoItem[];
+  /** Solo asistentes de la reunión (incluye tardíos). Orden: votaron primero, luego no votaron. */
+  inmuebles_asistentes?: InmuebleVotoItem[];
 }
 
 /** Forma raw que devuelve el endpoint GET /preguntas/{id}/resultados */
@@ -32,10 +45,17 @@ export interface ResultadosApiResponse {
   pregunta_id: number;
   tipo: string;
   estado: string;
+  asistencia_unidades?: number;
+  asistencia_coeficiente?: number;
+  votaron_unidades?: number;
+  votaron_coeficiente?: number;
+  no_votaron_unidades?: number;
+  no_votaron_coeficiente?: number;
   resultados: ResultadosApiItem[];
 }
 
 export interface ResultadoOpcion {
+  /** 0 para "No votó" (asistentes que no votaron) */
   opcion_id: number;
   texto: string;
   votos: number;
@@ -54,5 +74,12 @@ export interface ResultadosPregunta {
   total_votos: number;
   total_unidades?: number;
   total_coeficiente?: number;
+  /** Unidades que registraron asistencia en el quórum */
+  asistencia_unidades?: number;
+  asistencia_coeficiente?: number;
+  votaron_unidades?: number;
+  votaron_coeficiente?: number;
+  no_votaron_unidades?: number;
+  no_votaron_coeficiente?: number;
   opciones: ResultadoOpcion[];
 }

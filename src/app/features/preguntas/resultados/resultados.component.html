@@ -3,9 +3,15 @@
     <div class="resultados-loading">Cargando resultados...</div>
   } @else if (resultados(); as r) {
     <h3 class="resultados-title">{{ r.pregunta }}</h3>
-    <div class="resultados-total">Total votos: {{ r.total_votos | number }}</div>
+    <div class="resultados-total">
+      @if (r.asistencia_unidades != null) {
+        Total asistencia: {{ r.asistencia_unidades | number }} unidades
+      } @else {
+        Total votos: {{ r.total_votos | number }}
+      }
+    </div>
     <div class="resultados-bars">
-      @for (op of r.opciones; track op.opcion_id) {
+      @for (op of r.opciones; track op.opcion_id + '-' + op.texto) {
         <div class="resultados-row">
           <span class="resultados-label">{{ op.texto }}</span>
           <div class="resultados-bar-wrap">

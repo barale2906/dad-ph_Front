@@ -535,6 +535,11 @@
   }
 
   tr:hover td { background: rgba(255, 255, 255, 0.03); }
+
+  .row-no-voto td {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
 }
 
 .text-right { text-align: right; }
@@ -788,10 +793,12 @@
   margin-top: 0.25rem;
 }
 
-.istat-total    .istat-val { color: var(--text-primary); }
-.istat-votaron  .istat-val { color: var(--neon-green); }
+.istat-total       .istat-val { color: var(--text-primary); }
+.istat-asistencia  .istat-val { color: var(--neon-blue); }
+.istat-votaron     .istat-val { color: var(--neon-green); }
+.istat-no-voto     .istat-val { color: var(--text-secondary); }
 .istat-pendientes .istat-val { color: var(--text-secondary); }
-.istat-coef     .istat-val { color: var(--neon-blue); }
+.istat-coef        .istat-val { color: var(--neon-blue); }
 
 /* Filtros */
 .ivoto-filters {
@@ -916,4 +923,10 @@
 .sin-voto-text {
   color: var(--text-secondary);
   opacity: 0.5;
+}
+
+.opcion-no-voto {
+  opacity: 1;
+  font-style: italic;
+  color: var(--text-secondary);
 }

@@ -68,6 +68,9 @@ export class PreguntaService {
     return this.api.post<{ message: string; status: string }>(`/preguntas/${id}/cerrar`, {});
   }
 
+  /** ID sintético para la opción "No votó" (asistentes que no votaron) */
+  static readonly NO_VOTO_OPCION_ID = 0;
+
   getResultados(preguntaId: number) {
     return this.api
       .get<{ data: ResultadosApiResponse }>(`/preguntas/${preguntaId}/resultados`)
@@ -75,33 +78,62 @@ export class PreguntaService {
         map((r) => {
           const raw = r.data;
           const items = raw.resultados ?? [];
+          const asistenciaUnidades = raw.asistencia_unidades ?? 0;
+          const asistenciaCoef = raw.asistencia_coeficiente ?? 0;
+          const noVotaronUnidades = raw.no_votaron_unidades ?? 0;
+          const noVotaronCoef = raw.no_votaron_coeficiente ?? 0;
+
           const totalVotos = items.reduce((s, o) => s + o.votos, 0);
-          const totalCoef  = items.reduce((s, o) => s + o.coeficiente, 0);
+          const totalCoef = items.reduce((s, o) => s + o.coeficiente, 0);
+
+          const opcionesOpcion: ResultadosPregunta['opciones'] = items.map((o) => ({
+            opcion_id: o.opcion_id,
+            texto: o.texto,
+            votos: o.votos,
+            unidades: o.votos,
+            porcentaje: asistenciaUnidades > 0 ? (o.votos / asistenciaUnidades) * 100 : 0,
+            porcentaje_unidades: asistenciaUnidades > 0 ? (o.votos / asistenciaUnidades) * 100 : 0,
+            coeficiente: o.coeficiente,
+            porcentaje_coeficiente: asistenciaCoef > 0 ? (o.coeficiente / asistenciaCoef) * 100 : 0,
+          }));
+
+          if (noVotaronUnidades > 0 || noVotaronCoef > 0) {
+            opcionesOpcion.push({
+              opcion_id: PreguntaService.NO_VOTO_OPCION_ID,
+              texto: 'No votó',
+              votos: noVotaronUnidades,
+              unidades: noVotaronUnidades,
+              porcentaje: asistenciaUnidades > 0 ? (noVotaronUnidades / asistenciaUnidades) * 100 : 0,
+              porcentaje_unidades: asistenciaUnidades > 0 ? (noVotaronUnidades / asistenciaUnidades) * 100 : 0,
+              coeficiente: noVotaronCoef,
+              porcentaje_coeficiente: asistenciaCoef > 0 ? (noVotaronCoef / asistenciaCoef) * 100 : 0,
+            });
+          }
 
           return {
             pregunta_id: raw.pregunta_id,
             pregunta: '',
-            total_votos:      totalVotos,
-            total_unidades:   totalVotos,
-            total_coeficiente: totalCoef,
-            opciones: items.map((o) => ({
-              opcion_id: o.opcion_id,
-              texto:     o.texto,
-              votos:     o.votos,
-              unidades:  o.votos,
-              porcentaje:            totalVotos > 0 ? (o.votos       / totalVotos) * 100 : 0,
-              porcentaje_unidades:   totalVotos > 0 ? (o.votos       / totalVotos) * 100 : 0,
-              coeficiente:           o.coeficiente,
-              porcentaje_coeficiente: totalCoef  > 0 ? (o.coeficiente / totalCoef)  * 100 : 0,
-            })),
+            total_votos: totalVotos,
+            total_unidades: asistenciaUnidades || totalVotos,
+            total_coeficiente: asistenciaCoef || totalCoef,
+            asistencia_unidades: raw.asistencia_unidades,
+            asistencia_coeficiente: raw.asistencia_coeficiente,
+            votaron_unidades: raw.votaron_unidades,
+            votaron_coeficiente: raw.votaron_coeficiente,
+            no_votaron_unidades: raw.no_votaron_unidades,
+            no_votaron_coeficiente: raw.no_votaron_coeficiente,
+            opciones: opcionesOpcion,
           } as ResultadosPregunta;
         })
       );
   }
 
-  getInmueblesVotos(preguntaId: number) {
+  getInmueblesVotos(preguntaId: number, params?: { ocultar_respuesta?: boolean }) {
+    const queryParams = params?.ocultar_respuesta != null
+      ? { ocultar_respuesta: params.ocultar_respuesta } as Record<string, boolean>
+      : undefined;
     return this.api
-      .get<{ data: InmueblesVotosResponse }>(`/preguntas/${preguntaId}/inmuebles-votos`)
+      .get<{ data: InmueblesVotosResponse }>(`/preguntas/${preguntaId}/inmuebles-votos`, queryParams)
       .pipe(map((r) => r.data));
   }
 }

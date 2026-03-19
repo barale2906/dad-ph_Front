@@ -60,6 +60,9 @@ const PIE_COLORS = [
   '#3498db',
 ];
 
+/** Color para la opción "No votó" (asistentes que no votaron) */
+const NO_VOTO_COLOR = '#888888';
+
 @Component({
   selector: 'app-pregunta-form',
   standalone: true,
@@ -102,7 +105,7 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
   protected inmueblesVotos = signal<InmueblesVotosResponse | null>(null);
   protected loadingInmuebles = signal(false);
   protected ocultarRespuesta = signal(false);
-  protected filtroVotos = signal<'todos' | 'votaron' | 'pendientes'>('todos');
+  protected filtroVotos = signal<'todos' | 'votaron' | 'no_votaron'>('todos');
 
   // Votación por código de barras
   protected selectedOpcionId = signal<number | null>(null);
@@ -125,10 +128,12 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
   protected pieUnidades = computed(() => {
     const r = this.resultados();
     if (!r?.opciones.length) return [];
-    return this.computePieSlices(
-      r.opciones.map((o) => o.unidades ?? o.votos),
-      r.opciones.map((o) => o.texto)
+    const values = r.opciones.map((o) => o.unidades ?? o.votos);
+    const labels = r.opciones.map((o) => o.texto);
+    const colors = r.opciones.map((o, i) =>
+      o.opcion_id === PreguntaService.NO_VOTO_OPCION_ID ? NO_VOTO_COLOR : PIE_COLORS[i % PIE_COLORS.length]
     );
+    return this.computePieSlices(values, labels, colors);
   });
 
   protected pieCoeficiente = computed(() => {
@@ -136,7 +141,11 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
     if (!r?.opciones.length) return [];
     const values = r.opciones.map((o) => o.coeficiente ?? 0);
     if (values.every((v) => v === 0)) return [];
-    return this.computePieSlices(values, r.opciones.map((o) => o.texto));
+    const labels = r.opciones.map((o) => o.texto);
+    const colors = r.opciones.map((o, i) =>
+      o.opcion_id === PreguntaService.NO_VOTO_OPCION_ID ? NO_VOTO_COLOR : PIE_COLORS[i % PIE_COLORS.length]
+    );
+    return this.computePieSlices(values, labels, colors);
   });
 
   protected hasCoeficienteData = computed(() =>
@@ -152,7 +161,7 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
       label: o.texto,
       value: o.unidades ?? o.votos,
       percentage: o.porcentaje_unidades ?? o.porcentaje,
-      color: PIE_COLORS[i % PIE_COLORS.length],
+      color: o.opcion_id === PreguntaService.NO_VOTO_OPCION_ID ? NO_VOTO_COLOR : PIE_COLORS[i % PIE_COLORS.length],
     }));
   });
 
@@ -165,32 +174,57 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
       label: o.texto,
       value: o.coeficiente ?? 0,
       percentage: o.porcentaje_coeficiente ?? 0,
-      color: PIE_COLORS[i % PIE_COLORS.length],
+      color: o.opcion_id === PreguntaService.NO_VOTO_OPCION_ID ? NO_VOTO_COLOR : PIE_COLORS[i % PIE_COLORS.length],
     }));
   });
 
   protected opcionColorMap = computed(() => {
     const map = new Map<number, string>();
     (this.resultados()?.opciones ?? []).forEach((o, i) => {
-      map.set(o.opcion_id, PIE_COLORS[i % PIE_COLORS.length]);
+      const color = o.opcion_id === PreguntaService.NO_VOTO_OPCION_ID ? NO_VOTO_COLOR : PIE_COLORS[i % PIE_COLORS.length];
+      map.set(o.opcion_id, color);
     });
     return map;
   });
 
-  protected inmueblesFiltrados = computed<InmuebleVotoItem[]>(() => {
+  /** Lista base: inmuebles_asistentes (asistentes de la reunión) o inmuebles si no existe */
+  protected inmueblesListaBase = computed<InmuebleVotoItem[]>(() => {
     const data = this.inmueblesVotos();
     if (!data) return [];
+    return (data.inmuebles_asistentes?.length ? data.inmuebles_asistentes : data.inmuebles) ?? [];
+  });
+
+  protected inmueblesFiltrados = computed<InmuebleVotoItem[]>(() => {
+    const lista = this.inmueblesListaBase();
+    if (!lista.length) return [];
     switch (this.filtroVotos()) {
-      case 'votaron':   return data.inmuebles.filter((i) => i.votado);
-      case 'pendientes': return data.inmuebles.filter((i) => !i.votado);
-      default:          return data.inmuebles;
+      case 'votaron':   return lista.filter((i) => i.votado);
+      case 'no_votaron': return lista.filter((i) => !i.votado);
+      default:          return lista;
     }
   });
 
+  protected countAsistentesTodos = computed(() => this.inmueblesListaBase().length);
+  protected countAsistentesVotaron = computed(() => {
+    const d = this.inmueblesVotos();
+    if (!d) return 0;
+    const base = d.asistencia_unidades ?? 0;
+    const noVotaron = d.no_votaron_unidades ?? 0;
+    return base > 0 ? base - noVotaron : this.inmueblesListaBase().filter((i) => i.votado).length;
+  });
+  protected countAsistentesNoVotaron = computed(() => {
+    const d = this.inmueblesVotos();
+    return d?.no_votaron_unidades ?? this.inmueblesListaBase().filter((i) => !i.votado).length;
+  });
+
+  /** Porcentaje de participación: votaron / asistencia (asistentes registrados) */
   protected pctVotantes = computed(() => {
     const d = this.inmueblesVotos();
-    if (!d || d.total_inmuebles === 0) return 0;
-    return (d.inmuebles_votaron / d.total_inmuebles) * 100;
+    if (!d) return 0;
+    const base = d.asistencia_unidades ?? d.total_inmuebles;
+    if (base === 0) return 0;
+    const votaron = base - (d.no_votaron_unidades ?? 0);
+    return (votaron / base) * 100;
   });
 
   protected form = this.fb.nonNullable.group({
@@ -271,7 +305,7 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
     const id = this.preguntaId();
     if (!id) return;
     this.loadingInmuebles.set(true);
-    this.preguntaService.getInmueblesVotos(id).subscribe({
+    this.preguntaService.getInmueblesVotos(id, { ocultar_respuesta: this.ocultarRespuesta() }).subscribe({
       next: (data) => this.inmueblesVotos.set(data),
       error: () => {},
       complete: () => this.loadingInmuebles.set(false),
@@ -575,17 +609,17 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
 
   // ── Gráficos SVG de torta ──────────────────────────────────────────────────
 
-  private computePieSlices(values: number[], labels: string[]): PieSlice[] {
+  private computePieSlices(values: number[], labels: string[], colors?: string[]): PieSlice[] {
     const total = values.reduce((s, v) => s + v, 0);
     if (total === 0) return [];
 
     const items = values
-      .map((v, i) => ({ v, i, label: labels[i] }))
+      .map((v, i) => ({ v, i, label: labels[i], color: colors?.[i] ?? PIE_COLORS[i % PIE_COLORS.length] }))
       .filter((item) => item.v > 0);
 
     let angle = -Math.PI / 2;
 
-    return items.map(({ v, i, label }) => {
+    return items.map(({ v, i, label, color }) => {
       const portion = v / total;
       const startAngle = angle;
       angle += portion * 2 * Math.PI;
@@ -604,7 +638,7 @@ export class PreguntaFormComponent implements OnInit, OnDestroy {
 
       return {
         path,
-        color: PIE_COLORS[i % PIE_COLORS.length],
+        color,
         label,
         value: v,
         percent: Math.round(portion * 100),
