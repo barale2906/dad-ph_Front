@@ -1,7 +1,87 @@
-.estadisticas { padding: 1.5rem; max-width: 700px; }
-.back-link { display: inline-block; color: var(--neon-blue); margin-bottom: 1rem; text-decoration: none; }
-.page-title { font-family: var(--font-mono); font-size: 1.5rem; color: var(--neon-green); margin: 0 0 1.5rem; }
-.loading { color: var(--text-secondary); padding: 2rem; }
-.estadisticas-content { display: flex; flex-direction: column; gap: 1.5rem; }
-.resultados-block { padding: 1rem; }
-.empty-msg { color: var(--text-secondary); font-style: italic; }
+.estadisticas {
+  padding: 1.5rem;
+  max-width: 900px;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--neon-blue);
+  margin-bottom: 1rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  color: var(--neon-green);
+  margin: 0;
+}
+
+.loading {
+  color: var(--text-secondary);
+  padding: 2rem;
+}
+
+.estadisticas-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.votaciones-section {
+  margin-top: 0.5rem;
+}
+
+.section-main-title {
+  font-size: 1.1rem;
+  color: var(--neon-blue);
+  margin: 0 0 1rem;
+}
+
+.resultados-block {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+
+  app-resultados-charts {
+    display: block;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 1rem;
+  }
+}
+
+.votacion-sin-resultados {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.votacion-title {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.votacion-mensaje {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.empty-msg {
+  color: var(--text-secondary);
+  font-style: italic;
+}

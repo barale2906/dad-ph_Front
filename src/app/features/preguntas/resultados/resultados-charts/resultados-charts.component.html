@@ -1,0 +1,61 @@
+@if (data(); as r) {
+  <div class="resultados-charts">
+    <div class="charts-grid">
+      <!-- Pie: Unidades -->
+      <div class="chart-card panel-hud">
+        <h4 class="chart-title">Distribución por Unidades</h4>
+        @if (pieUnidades().length > 0) {
+          <div class="pie-wrap">
+            <svg viewBox="-1.15 -1.15 2.3 2.3" class="pie-svg">
+              @for (slice of pieUnidades(); track slice.label + slice.value) {
+                <path [attr.d]="slice.path" [attr.fill]="slice.color">
+                  <title>{{ slice.label }}: {{ slice.percent }}%</title>
+                </path>
+              }
+            </svg>
+            <div class="pie-legend">
+              @for (slice of pieUnidades(); track slice.label + slice.value) {
+                <div class="legend-item">
+                  <span class="legend-dot" [style.background]="slice.color"></span>
+                  <span class="legend-label">{{ slice.label }}</span>
+                  <span class="legend-val">{{ slice.percent }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <p class="chart-empty">Sin datos suficientes.</p>
+        }
+      </div>
+
+      <!-- Pie: Coeficiente (solo si hay datos) -->
+      @if (hasCoeficienteData()) {
+        <div class="chart-card panel-hud">
+          <h4 class="chart-title">Distribución por Coeficiente</h4>
+          @if (pieCoeficiente().length > 0) {
+            <div class="pie-wrap">
+              <svg viewBox="-1.15 -1.15 2.3 2.3" class="pie-svg">
+                @for (slice of pieCoeficiente(); track slice.label + slice.value) {
+                  <path [attr.d]="slice.path" [attr.fill]="slice.color">
+                    <title>{{ slice.label }}: {{ slice.percent }}%</title>
+                  </path>
+                }
+              </svg>
+              <div class="pie-legend">
+                @for (slice of pieCoeficiente(); track slice.label + slice.value) {
+                  <div class="legend-item">
+                    <span class="legend-dot" [style.background]="slice.color"></span>
+                    <span class="legend-label">{{ slice.label }}</span>
+                    <span class="legend-val">{{ slice.percent }}%</span>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="chart-empty">Sin datos suficientes.</p>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

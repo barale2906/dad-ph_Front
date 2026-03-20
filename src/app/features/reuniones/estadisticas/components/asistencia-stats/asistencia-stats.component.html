@@ -1,0 +1,95 @@
+@if (data(); as asistencia) {
+  <div class="asistencia-stats panel-hud">
+    <h3 class="stats-title">Asistencia</h3>
+
+    <!-- Resumen numérico -->
+    <div class="resumen-grid">
+      <div class="resumen-item">
+        <span class="resumen-label">Unidades registradas</span>
+        <span class="resumen-value">{{ asistencia.unidades_registradas | number }}</span>
+      </div>
+      <div class="resumen-item">
+        <span class="resumen-label">Unidades no registradas</span>
+        <span class="resumen-value">{{ asistencia.unidades_no_registradas | number }}</span>
+      </div>
+      <div class="resumen-item">
+        <span class="resumen-label">Total unidades</span>
+        <span class="resumen-value">{{ asistencia.total_unidades | number }}</span>
+      </div>
+      <div class="resumen-item">
+        <span class="resumen-label">Cumplimiento</span>
+        <span class="resumen-value resumen-pct">{{ porcentajeRegistradas() | number:'1.1-1' }}%</span>
+      </div>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div
+          class="progress-fill"
+          [style.width.%]="porcentajeRegistradas()"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Asistentes registrados -->
+    @if ((asistencia.registrados ?? []).length > 0) {
+      <div class="section">
+        <h4 class="section-title">Registrados ({{ (asistencia.registrados ?? []).length }})</h4>
+        <div class="table-wrap">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Identificación</th>
+                <th>Inmuebles</th>
+                <th>Coef.</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of (asistencia.registrados ?? []); track r.asistente_id) {
+                <tr>
+                  <td class="cell-id">{{ r.identificacion || '—' }}</td>
+                  <td class="cell-inmuebles">
+                    @for (inm of (r.inmuebles ?? []); track inm.inmueble_id) {
+                      <span class="inm-badge">{{ inm.nomenclatura }}</span>
+                    }
+                  </td>
+                  <td class="cell-coef">
+                    {{ coefAsistente(r.inmuebles ?? []) | number:'1.2-2' }}%
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- No registrados (colapsable si hay muchos) -->
+    @if ((asistencia.no_registrados ?? []).length > 0) {
+      <div class="section">
+        <h4 class="section-title">No registrados ({{ (asistencia.no_registrados ?? []).length }})</h4>
+        <div class="table-wrap table-wrap-sm">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Nomenclatura</th>
+                <th>Coef.</th>
+                <th>Teléfono</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (nr of (asistencia.no_registrados ?? []); track nr.inmueble_id) {
+                <tr>
+                  <td>{{ nr.nomenclatura }}</td>
+                  <td>{{ nr.coeficiente | number:'1.2-2' }}%</td>
+                  <td class="cell-muted">{{ nr.telefono || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+}

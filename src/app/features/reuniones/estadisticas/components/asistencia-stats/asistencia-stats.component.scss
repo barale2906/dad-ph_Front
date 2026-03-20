@@ -1,0 +1,134 @@
+.asistencia-stats {
+  padding: 1.25rem;
+}
+
+.stats-title {
+  font-size: 1rem;
+  color: var(--neon-blue);
+  margin: 0 0 1rem;
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.resumen-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.resumen-value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--neon-green);
+  font-weight: 600;
+
+  &.resumen-pct {
+    color: var(--neon-blue);
+  }
+}
+
+.progress-section {
+  margin-bottom: 1.25rem;
+}
+
+.progress-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--neon-green);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.section {
+  margin-top: 1rem;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.section-title {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 4px;
+  border: var(--border-subtle);
+
+  &.table-wrap-sm {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: var(--border-subtle);
+  }
+
+  th {
+    color: var(--neon-blue);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.cell-id {
+  font-family: var(--font-mono);
+}
+
+.cell-inmuebles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.inm-badge {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--neon-green);
+  border-radius: 4px;
+}
+
+.cell-coef {
+  font-family: var(--font-mono);
+  color: var(--neon-blue);
+}
+
+.cell-muted {
+  color: var(--text-muted);
+}

@@ -1,0 +1,47 @@
+@if (data(); as od) {
+  <div class="orden-dia-stats panel-hud">
+    <h3 class="stats-title">Orden del día</h3>
+
+    <!-- Barra de progreso -->
+    <div class="avance-section">
+      <div class="avance-header">
+        <span class="avance-label">Nivel de cumplimiento</span>
+        <span class="avance-counts">
+          <span class="avance-value">{{ od.ejecutados }}</span>
+          <span class="avance-sep">/</span>
+          <span class="avance-total">{{ od.total }}</span>
+          <span class="avance-pct">{{ od.nivel_cumplimiento | number:'1.0-0' }}%</span>
+        </span>
+      </div>
+      <div class="progress-track">
+        <div
+          class="progress-fill"
+          [style.width.%]="od.nivel_cumplimiento"
+          [class.complete]="od.nivel_cumplimiento === 100"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Lista de ítems -->
+    @if (od.items.length > 0) {
+      <ul class="items-list">
+        @for (item of od.items; track item.id) {
+          <li class="item-row" [class.ejecutado]="item.ejecutado">
+            <span class="item-num">{{ item.orden }}</span>
+            <span class="item-check" [attr.aria-label]="item.ejecutado ? 'Ejecutado' : 'Pendiente'">
+              {{ item.ejecutado ? '✓' : '○' }}
+            </span>
+            <div class="item-body">
+              <span class="item-titulo">{{ item.titulo }}</span>
+              @if (item.descripcion) {
+                <p class="item-desc">{{ item.descripcion }}</p>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty-msg">No hay ítems en el orden del día</p>
+    }
+  </div>
+}

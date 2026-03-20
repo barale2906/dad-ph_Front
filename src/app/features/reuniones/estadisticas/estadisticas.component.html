@@ -2,20 +2,59 @@
   <a [routerLink]="['/reuniones', reunionId]" class="back-link">← Volver a reunión</a>
 
   @if (reunion(); as r) {
-    <h1 class="page-title">Estadísticas - {{ r.tipo }} {{ r.ente }}</h1>
+    <div class="page-header">
+      <h1 class="page-title">Estadísticas — {{ r.tipo }} {{ r.ente }}</h1>
+      @if (estadisticas() && !loading()) {
+        <button
+          type="button"
+          class="btn btn-outline"
+          [disabled]="downloadingCsv()"
+          (click)="descargarCsv()"
+        >
+          {{ downloadingCsv() ? 'Descargando...' : 'Descargar CSV' }}
+        </button>
+      }
+    </div>
   }
 
-  @if (loading) {
+  @if (loading()) {
     <div class="loading">Cargando estadísticas...</div>
+  } @else if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+    <button type="button" class="btn btn-outline" (click)="loadEstadisticas()">
+      Reintentar
+    </button>
   } @else if (estadisticas(); as est) {
     <div class="estadisticas-content">
-      @for (p of est.preguntas; track p.pregunta_id) {
-        <div class="resultados-block panel-hud">
-          <app-resultados [data]="p" />
-        </div>
-      } @empty {
-        <p class="empty-msg">No hay preguntas con resultados para esta reunión</p>
-      }
+
+      <!-- Orden del día -->
+      <app-orden-dia-stats [data]="est.orden_dia" />
+
+      <!-- Asistencia -->
+      <app-asistencia-stats [data]="est.asistencia" />
+
+      <!-- Votaciones -->
+      <section class="votaciones-section">
+        <h2 class="section-main-title">Votaciones</h2>
+
+        @for (item of votacionesConResultados(); track item.votacion.pregunta_id) {
+          <div class="resultados-block panel-hud">
+            <app-resultados [data]="item.data" />
+            <app-resultados-charts [data]="item.data" />
+          </div>
+        }
+
+        @for (v of votacionesSinResultados(); track v.pregunta_id) {
+          <div class="votacion-sin-resultados panel-hud">
+            <h3 class="votacion-title">{{ v.pregunta }}</h3>
+            <p class="votacion-mensaje">{{ v.mensaje }}</p>
+          </div>
+        }
+
+        @if (est.votaciones.length === 0) {
+          <p class="empty-msg">No hay votaciones para esta reunión</p>
+        }
+      </section>
     </div>
   } @else {
     <p class="empty-msg">No se pudieron cargar las estadísticas</p>

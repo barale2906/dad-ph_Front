@@ -1,0 +1,82 @@
+.resultados-charts {
+  margin-top: 1rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.chart-card {
+  padding: 1.25rem;
+}
+
+.chart-title {
+  font-size: 0.9rem;
+  color: var(--neon-blue);
+  margin: 0 0 1rem;
+  font-family: var(--font-mono);
+}
+
+.pie-wrap {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pie-svg {
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+
+  path {
+    stroke: rgba(0, 0, 0, 0.4);
+    stroke-width: 0.02;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.legend-val {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.chart-empty {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.88rem;
+  margin: 0;
+}
