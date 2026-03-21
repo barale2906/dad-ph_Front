@@ -8,6 +8,14 @@ import type { Inmueble } from '../../../core/models/inmueble.model';
 
 type TipoIdentificador = 'telefono' | 'codigo_barras';
 
+/** Prefijos para WhatsApp en registro tardío (valor = código sin +). */
+const PREFIJOS_WHATSAPP_TARDIO: ReadonlyArray<{ label: string; codigo: string }> = [
+  { label: 'Colombia', codigo: '57' },
+  { label: 'Venezuela', codigo: '58' },
+  { label: 'Ecuador', codigo: '593' },
+  { label: 'Estados Unidos', codigo: '1' },
+];
+
 @Component({
   selector: 'app-tardio-asistentes',
   standalone: true,
@@ -23,6 +31,8 @@ export class TardioAsistentesComponent implements OnInit {
   protected reunionId = 0;
   private readonly searchInputRef = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
+  protected readonly prefijosWhatsapp = PREFIJOS_WHATSAPP_TARDIO;
+
   // Lista de registrados tardíos en esta sesión
   protected registrados = signal<AsistenteReunion[]>([]);
 
@@ -34,6 +44,8 @@ export class TardioAsistentesComponent implements OnInit {
   protected searchLoading = signal(false);
   protected inmuebleSeleccionado = signal<Inmueble | null>(null);
   protected formTelefono = signal('');
+  /** Código de país sin +; por defecto Colombia (57). */
+  protected prefijoTelefono = signal('57');
   protected formCodigoBarras = signal<number | null>(null);
   protected registering = signal(false);
   protected registerError = signal('');
@@ -128,7 +140,7 @@ export class TardioAsistentesComponent implements OnInit {
   protected puedeRegistrar(): boolean {
     if (!this.inmuebleSeleccionado()) return false;
     if (this.tipoIdentificador() === 'telefono') {
-      return this.formTelefono().trim().length > 0;
+      return this.digitosTelefonoLocal().length > 0;
     }
     const cod = this.formCodigoBarras();
     return cod !== null && cod >= 1;
@@ -142,7 +154,7 @@ export class TardioAsistentesComponent implements OnInit {
     }
 
     const tipo = this.tipoIdentificador();
-    if (tipo === 'telefono' && !this.formTelefono().trim()) {
+    if (tipo === 'telefono' && !this.digitosTelefonoLocal()) {
       this.registerError.set('Ingrese el número de teléfono.');
       return;
     }
@@ -163,7 +175,7 @@ export class TardioAsistentesComponent implements OnInit {
     };
 
     if (tipo === 'telefono') {
-      payload.telefono = this.formTelefono().trim();
+      payload.telefono = this.telefonoInternacionalCompleto();
     } else {
       payload.codigo_barras = this.formCodigoBarras()!;
     }
@@ -196,5 +208,15 @@ export class TardioAsistentesComponent implements OnInit {
       return 'Demasiadas peticiones. Espere un momento e intente de nuevo.';
     }
     return msg;
+  }
+
+  /** Solo dígitos del número local (sin prefijo de país). */
+  protected digitosTelefonoLocal(): string {
+    return this.formTelefono().replace(/\D/g, '');
+  }
+
+  /** Número en formato E.164 sin +: prefijo + dígitos locales. */
+  private telefonoInternacionalCompleto(): string {
+    return this.prefijoTelefono() + this.digitosTelefonoLocal();
   }
 }

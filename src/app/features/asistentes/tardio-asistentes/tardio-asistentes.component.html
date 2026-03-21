@@ -118,16 +118,30 @@
         </div>
       } @else {
         <div class="form-group">
-          <label class="form-label">Teléfono <span class="form-required">*</span></label>
-          <input
-            type="tel"
-            class="input"
-            placeholder="Ej: 573001234567"
-            [ngModel]="formTelefono()"
-            (ngModelChange)="formTelefono.set($event)"
-            autocomplete="off"
-          />
-          <span class="form-hint">Formato internacional sin espacios (ej: 573001234567)</span>
+          <label class="form-label">Teléfono (WhatsApp) <span class="form-required">*</span></label>
+          <div class="telefono-row">
+            <select
+              class="input input--prefijo"
+              [ngModel]="prefijoTelefono()"
+              (ngModelChange)="prefijoTelefono.set($event)"
+              aria-label="Prefijo de país"
+            >
+              @for (p of prefijosWhatsapp; track p.codigo) {
+                <option [value]="p.codigo">{{ p.label }} (+{{ p.codigo }})</option>
+              }
+            </select>
+            <input
+              type="tel"
+              class="input telefono-input"
+              placeholder="Ej: 3002235689"
+              [ngModel]="formTelefono()"
+              (ngModelChange)="formTelefono.set($event)"
+              autocomplete="tel-national"
+            />
+          </div>
+          <span class="form-hint"
+            >Número local sin prefijo; se enviará completo (ej. Colombia + 3002235689 → 573002235689).</span
+          >
         </div>
       }
 

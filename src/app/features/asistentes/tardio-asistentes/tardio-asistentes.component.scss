@@ -80,6 +80,22 @@
 }
 .input:focus { outline: none; border-color: var(--accent-orange); }
 
+.telefono-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.input--prefijo {
+  flex: 0 0 auto;
+  min-width: 10.5rem;
+  max-width: 48%;
+  cursor: pointer;
+}
+.telefono-input {
+  flex: 1;
+  min-width: 0;
+}
+
 // ── Toggle tipo ───────────────────────────────────────────────────────────
 .tipo-toggle {
   display: flex;
