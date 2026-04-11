@@ -221,6 +221,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'barcodes',
+        loadComponent: () =>
+          import('./features/asistentes/barcodes-print/barcodes-print.component').then(
+            (m) => m.BarcodesPrintComponent
+          ),
+      },
+      {
         path: 'asistentes/barcodes',
         loadComponent: () =>
           import('./features/asistentes/barcodes-print/barcodes-print.component').then(

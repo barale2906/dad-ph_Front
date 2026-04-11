@@ -96,11 +96,32 @@ export class AsistenteService {
 
   // ── Barcodes ─────────────────────────────────────────────────────────────
 
-  /** Genera PDF de códigos de barras. Devuelve blob para descarga. */
-  printBarcodes(inicio: number, cantidad: number, repeticiones?: number) {
-    const body = { inicio, cantidad, repeticiones: repeticiones ?? 1 };
-    return this.http.post(`${API_BASE}/barcodes/print`, body, {
+  /** Genera PDF de códigos de barras. Devuelve blob para descarga directa o visualización. */
+  printBarcodes(payload: BarcodePrintPayload) {
+    return this.http.post(`${API_BASE}/barcodes/print`, payload, {
       responseType: 'blob',
+      observe: 'response',
     });
   }
+}
+
+// ── Tipos públicos ────────────────────────────────────────────────────────────
+
+export type BarcodeTipo = 'C128' | 'C39' | 'EAN13' | 'EAN8' | 'UPCA';
+export type BarcodePapel = 'A4' | 'Letter' | 'Legal';
+export type BarcodeOrientacion = 'portrait' | 'landscape';
+
+export interface BarcodePrintPayload {
+  inicio: number;
+  cantidad: number;
+  repeticiones: number;
+  rotulo_ancho: number;
+  rotulo_alto: number;
+  papel?: BarcodePapel;
+  orientacion?: BarcodeOrientacion;
+  margen_top?: number;
+  margen_bottom?: number;
+  margen_left?: number;
+  margen_right?: number;
+  tipo_codigo?: BarcodeTipo;
 }

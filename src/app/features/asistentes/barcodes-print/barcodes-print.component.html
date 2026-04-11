@@ -1,33 +1,271 @@
 <div class="barcodes-print">
-  <a routerLink="/asistentes" class="back-link">← Volver a asistentes</a>
 
-  <h1 class="page-title">Generar códigos de barras</h1>
-  <p class="page-desc">
-    El backend generará un PDF con los códigos de barras para imprimir.
-  </p>
+  <a routerLink="/dashboard" class="back-link">← Volver al inicio</a>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card panel-hud">
+  <div class="page-header">
+    <h1 class="page-title">Generación de códigos de barras</h1>
+    <p class="page-desc">
+      Configura los parámetros para generar el PDF con los códigos de barras.
+      Los campos marcados con <span class="required-mark">*</span> son obligatorios.
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit('download')" novalidate class="barcodes-form">
+
     @if (errorMessage) {
-      <div class="alert alert-error">{{ errorMessage }}</div>
+      <div class="alert alert-error" role="alert">{{ errorMessage }}</div>
     }
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Inicio (número)</label>
-        <input formControlName="inicio" type="number" min="1" class="input" />
+    <!-- ── Sección 1: Secuencia ─────────────────────────────────────────── -->
+    <section class="form-section panel-hud">
+      <h2 class="section-title">Secuencia de códigos</h2>
+
+      <div class="form-grid form-grid--3">
+
+        <div class="form-group">
+          <label for="inicio">Número de inicio <span class="required-mark">*</span></label>
+          <input
+            id="inicio"
+            formControlName="inicio"
+            type="number"
+            min="1"
+            class="input"
+            [class.input-error]="fieldError('inicio')"
+          />
+          @if (fieldError('inicio')) {
+            <span class="form-error">{{ fieldError('inicio') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="cantidad">Cantidad de códigos distintos <span class="required-mark">*</span></label>
+          <input
+            id="cantidad"
+            formControlName="cantidad"
+            type="number"
+            min="1"
+            class="input"
+            [class.input-error]="fieldError('cantidad')"
+          />
+          @if (fieldError('cantidad')) {
+            <span class="form-error">{{ fieldError('cantidad') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="repeticiones">Etiquetas por código <span class="required-mark">*</span></label>
+          <input
+            id="repeticiones"
+            formControlName="repeticiones"
+            type="number"
+            min="1"
+            class="input"
+            [class.input-error]="fieldError('repeticiones')"
+          />
+          @if (fieldError('repeticiones')) {
+            <span class="form-error">{{ fieldError('repeticiones') }}</span>
+          }
+        </div>
+
       </div>
-      <div class="form-group">
-        <label>Cantidad</label>
-        <input formControlName="cantidad" type="number" min="1" class="input" />
+
+      @if (totalRotulos() > 0) {
+        <p class="section-hint">
+          Se generarán <strong class="highlight">{{ totalRotulos() }} rótulo(s)</strong> en total.
+        </p>
+      }
+    </section>
+
+    <!-- ── Sección 2: Dimensiones del rótulo ───────────────────────────── -->
+    <section class="form-section panel-hud">
+      <h2 class="section-title">Dimensiones del rótulo</h2>
+      <p class="section-desc">Tamaño físico de cada etiqueta en milímetros (mínimo 10 mm).</p>
+
+      <div class="form-grid form-grid--2">
+
+        <div class="form-group">
+          <label for="rotulo_ancho">Ancho (mm) <span class="required-mark">*</span></label>
+          <input
+            id="rotulo_ancho"
+            formControlName="rotulo_ancho"
+            type="number"
+            min="10"
+            class="input"
+            [class.input-error]="fieldError('rotulo_ancho')"
+          />
+          @if (fieldError('rotulo_ancho')) {
+            <span class="form-error">{{ fieldError('rotulo_ancho') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="rotulo_alto">Alto (mm) <span class="required-mark">*</span></label>
+          <input
+            id="rotulo_alto"
+            formControlName="rotulo_alto"
+            type="number"
+            min="10"
+            class="input"
+            [class.input-error]="fieldError('rotulo_alto')"
+          />
+          @if (fieldError('rotulo_alto')) {
+            <span class="form-error">{{ fieldError('rotulo_alto') }}</span>
+          }
+        </div>
+
       </div>
-      <div class="form-group">
-        <label>Repeticiones</label>
-        <input formControlName="repeticiones" type="number" min="1" class="input" />
+    </section>
+
+    <!-- ── Sección 3: Configuración del papel ──────────────────────────── -->
+    <section class="form-section panel-hud">
+      <h2 class="section-title">Configuración del papel</h2>
+
+      <div class="form-grid form-grid--2">
+
+        <div class="form-group">
+          <label for="papel">Tamaño de papel</label>
+          <select id="papel" formControlName="papel" class="input" [class.input-error]="fieldError('papel')">
+            @for (op of papeles; track op.value) {
+              <option [value]="op.value">{{ op.label }}</option>
+            }
+          </select>
+          @if (fieldError('papel')) {
+            <span class="form-error">{{ fieldError('papel') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="orientacion">Orientación</label>
+          <select id="orientacion" formControlName="orientacion" class="input" [class.input-error]="fieldError('orientacion')">
+            @for (op of orientaciones; track op.value) {
+              <option [value]="op.value">{{ op.label }}</option>
+            }
+          </select>
+          @if (fieldError('orientacion')) {
+            <span class="form-error">{{ fieldError('orientacion') }}</span>
+          }
+        </div>
+
       </div>
+    </section>
+
+    <!-- ── Sección 4: Márgenes ─────────────────────────────────────────── -->
+    <section class="form-section panel-hud">
+      <h2 class="section-title">Márgenes del papel (mm)</h2>
+      <p class="section-desc">Espacio entre el borde del papel y la zona de impresión.</p>
+
+      <div class="form-grid form-grid--4">
+
+        <div class="form-group">
+          <label for="margen_top">Superior</label>
+          <input
+            id="margen_top"
+            formControlName="margen_top"
+            type="number"
+            min="0"
+            class="input"
+            [class.input-error]="fieldError('margen_top')"
+          />
+          @if (fieldError('margen_top')) {
+            <span class="form-error">{{ fieldError('margen_top') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="margen_bottom">Inferior</label>
+          <input
+            id="margen_bottom"
+            formControlName="margen_bottom"
+            type="number"
+            min="0"
+            class="input"
+            [class.input-error]="fieldError('margen_bottom')"
+          />
+          @if (fieldError('margen_bottom')) {
+            <span class="form-error">{{ fieldError('margen_bottom') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="margen_left">Izquierdo</label>
+          <input
+            id="margen_left"
+            formControlName="margen_left"
+            type="number"
+            min="0"
+            class="input"
+            [class.input-error]="fieldError('margen_left')"
+          />
+          @if (fieldError('margen_left')) {
+            <span class="form-error">{{ fieldError('margen_left') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="margen_right">Derecho</label>
+          <input
+            id="margen_right"
+            formControlName="margen_right"
+            type="number"
+            min="0"
+            class="input"
+            [class.input-error]="fieldError('margen_right')"
+          />
+          @if (fieldError('margen_right')) {
+            <span class="form-error">{{ fieldError('margen_right') }}</span>
+          }
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Sección 5: Tipo de código ────────────────────────────────────── -->
+    <section class="form-section panel-hud">
+      <h2 class="section-title">Tipo de código de barras</h2>
+      <p class="section-desc">Para secuencias numéricas simples se recomienda <strong>Code 128</strong>.</p>
+
+      <div class="form-grid form-grid--1">
+        <div class="form-group">
+          <label for="tipo_codigo">Formato</label>
+          <select id="tipo_codigo" formControlName="tipo_codigo" class="input" [class.input-error]="fieldError('tipo_codigo')">
+            @for (op of tiposCodigo; track op.value) {
+              <option [value]="op.value">{{ op.label }}</option>
+            }
+          </select>
+          @if (fieldError('tipo_codigo')) {
+            <span class="form-error">{{ fieldError('tipo_codigo') }}</span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Acciones ─────────────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        [disabled]="loading"
+        (click)="onSubmit('preview')"
+      >
+        @if (loading) {
+          <span class="btn-spinner"></span> Generando…
+        } @else {
+          Visualizar PDF
+        }
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="loading"
+      >
+        @if (loading) {
+          <span class="btn-spinner btn-spinner--dark"></span> Generando…
+        } @else {
+          Descargar PDF
+        }
+      </button>
     </div>
 
-    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading">
-      {{ loading ? 'Generando...' : 'Descargar PDF' }}
-    </button>
   </form>
 </div>
